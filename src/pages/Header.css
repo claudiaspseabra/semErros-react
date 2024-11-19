@@ -1,0 +1,16 @@
+.header {
+    height: 3.75em;
+    background: url(/src/images/grad_blue_v.png) repeat-x #fff;
+    padding: 10px 20px;
+    color: black;
+    display: block;
+    justify-content: space-between;
+    align-items: left;
+    border-bottom-color: #79bfd9;
+}
+
+img {
+    max-width: 50px;
+    max-height: 50px;
+    padding-bottom: 5px;
+}
