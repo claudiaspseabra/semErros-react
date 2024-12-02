@@ -1,88 +1,180 @@
 import './Table.css'
-import {useState} from 'react';
 
-const data = [
-  {
-    ano: "1º ano",
-    unidadeCurricular: "Algoritmia e Programação",
-    assiduidade: "N",
-    elemento: "Teste",
-    ponderacao: "50% e nota mínima 7 valores",
-    data: "04-11-2024",
-    hora: "10h",
-    sala: "Aula 101"
-  },
-  {
-    ano: "2º ano",
-    unidadeCurricular: "Engenharia de Software",
-    assiduidade: "S",
-    elemento: "Projeto",
-    ponderacao: "40%",
-    data: "15-11-2024",
-    hora: "14h",
-    sala: "Lab 3"
-  }
-];
+import React, {useState} from 'react';
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
 
-const evaluationMoments = [
-  { moment: "1º Elemento de Avaliação" },
-  { moment: "2º Elemento de Avaliação" },
-  { moment: "3º Elemento de Avaliação" },
-  { moment: "4º Elemento de Avaliação" }
-];
+import { default as ReactSelect, components } from "react-select";
 
-const elements = [
-  { element: "Teste" },
-  { element: "Mini teste" },
-  { element: "Teste final na Época de Exames" },
-  { element: "Trabalho(s) desenvolvido(s) ao longo do semestre" },
-  { element: "Entrega de Trabalho" },
-  { element: "Entrega de Trabalho de Grupo" },
-  { element: "Monografia" },
-  { element: "Exercício Prático Individual" },
-  { element: "Pitch" },
-  { element: "Exame Final" },
-  { element: "Prova Oral" }
-]
+import { data } from './data.tsx'
+import { evaluationMoments } from './data.tsx'
+import { elements } from './data.tsx'
+import { courses } from './data.tsx'
+import { ucs } from './data.tsx'
 
-const ucs = [
-  { ano: "1" , uc: "ALGA"},
-  { ano: "1", uc: "AP"},
-  { ano: "1", uc: "AOC"},
-  { ano: "1", uc: "AM"},
-  { ano: "1", uc: "CC"},
-  { ano: "2" , uc: "EA"},
-  { ano: "2", uc: "AED"},
-  { ano: "2", uc: "SO"},
-  { ano: "2", uc: "LP"},
-  { ano: "2", uc: "ER"},
-  { ano: "3", uc: "IA"},
-  { ano: "3", uc: "QS"},
-  { ano: "3", uc: "EMP"},
-  { ano: "3", uc: "GP"}
-]
+
+const Option = ( props) => {
+  return (
+    <div>
+      <components.Option {...props}>
+        <input
+          type="checkbox"
+          checked={props.isSelected}
+          onChange={() => null}
+        />{" "}
+        <label>{props.label}</label>
+      </components.Option>
+    </div>
+  );
+};
+
 
 function Admin() {
 
-  const [isShown, setIsShown] = useState(false);
+  const [username, setName] = useState("");
+  const [number, setNumber] = useState("");
+  const [password, setPassword] = useState("");
 
-  const showEvaluationMap = event => {
-    setIsShown(current => !current);
+  function validateUser() {
+    return username.length > 0 && number.length > 0 && password.length > 0;
   }
+
+  const [course, setCourse] = useState("");
+  const [uc, setUC] = useState("");
+
+  function validateCourse() {
+    return course.length > 0 && uc.length > 0;
+  }
+
+  function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+  }
+
+  {/* Provavelmente há uma forma melhor*/}
+
+  const [isAddUserShown, setIsAddUserShown] = useState(false);
+
+  const showAddUser = () => {
+    setIsAddUserShown(current => !current);
+  }
+
+  const [isEvalMapShown, setIsEvalMapShown] = useState(false);
+
+  const showEvaluationMap = () => {
+    setIsEvalMapShown(current => !current);
+  }
+
+  const [isEditCShown, setIsEditCShown] = useState(false);
+
+  const showEditCourse = () => {
+    setIsEditCShown(current => !current);
+  }
+
+
+  const [isChecked, setIsChecked] = useState({optionSelected: null});
+
+  const handleChange = (selected) => {
+    setIsChecked({
+      optionSelected: selected
+    });
+  };
 
   return (
     <>
     <div className='admin'>
 
       <div className='buttons'>
-        <button>Adicionar curso</button>
-        <button>Editar curso</button>
+        <button onClick={showAddUser}>Criar coordenador</button>
+        <button onClick={showEditCourse}>Editar curso</button>
         <button onClick={showEvaluationMap}>Mapa de avaliações</button>
       </div>
 
 
+      {/* Add user */}
+      {isAddUserShown && (
+        <div className='addUser'>
+        <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="name">
+              <Form.Label>Nome</Form.Label>
+                <Form.Control
+                    autoFocus
+                    type="text"
+                    value={username}
+                />
+            </Form.Group>
+              <Form.Group controlId="number">
+                <Form.Label>Número</Form.Label>
+                  <Form.Control
+                      autoFocus
+                      type="number"
+                      value={number}
+                  />
+              </Form.Group>
+            <Form.Group controlId="password">
+              <Form.Label>Password</Form.Label>
+                  <Form.Control
+                      autoFocus
+                      type="password"
+                      value={password}
+                />
+            </Form.Group>
+            <select>
+              {courses.map((course, courseIndex) => (
+                <option key={courseIndex} value={course.course}>
+                  {course.course}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" disabled={!validateUser()}>Adicionar</Button>
+          </Form>
+        </div>
+      )};
+      
+      {/* Edit course */}
+      {isEditCShown && (
+        <div className='editCourse'>
+          <Form onSubmit={handleSubmit}>
+            <select>
+              {courses.map((course, courseIndex) => (
+                <option key={courseIndex} value={course.course}>
+                  {course.course}
+                </option>
+              ))}
+            </select>
+            <Form.Group controlId="name">
+              <Form.Label>Nome</Form.Label>
+                <Form.Control
+                    autoFocus
+                    type="text"
+                    value={course}
+                />
+            </Form.Group>
+            <Form.Group controlId="subjects">
+              <ReactSelect
+                options={ucs}
+                isMulti
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                components={{
+                  Option
+                }}
+                onChange={handleChange}
+                value={isChecked.optionSelected}
+              />
+              <Form.Label>Nova UC</Form.Label>
+                <Form.Control
+                    autoFocus
+                    type="text"
+                    value={uc}
+                />
+            </Form.Group>
+            <Button type="submit" disabled={!validateUser()}>Editar</Button>
+          </Form>
+        </div>
+      )};
+
       {/* Evaluation Map */}
-      {isShown && (
+      {isEvalMapShown && (
         <div className='evaluationMap'>
           <h1>Engenharia Informática</h1>
           <h2>Época normal</h2>

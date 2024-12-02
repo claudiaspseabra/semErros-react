@@ -1,7 +1,10 @@
+body {
+    background-color: #f0f4f7
+}
+
 .Login {
     display: grid;
-    place-items: center;
-    background-color: #f0f4f7
+    place-items: center;  
 }
 
 form {

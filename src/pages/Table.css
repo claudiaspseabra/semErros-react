@@ -1,13 +1,6 @@
-{/*
-  - Fazer cor preencher página toda
-  - Meter texto direito dentro da tabela
-  - Fazer caixa para adicionar curso
-  - Fazer caixa para editar curso
-*/}
-
-.admin {
+body {
   background-color: #f0f4f7;
-}\
+}
 
 .buttons {
   margin-top: 30px;
@@ -27,11 +20,47 @@ button:hover {
   color: black;
 }
 
+button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background-color: #dee0e2;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: #c6c8ca;
+  cursor: pointer;
+  color: black;
+}
+
+button[type="submit"]:disabled {
+  background-color: #dee0e2;
+  cursor: not-allowed;
+}
+
 #logoff {
   margin-top: 50px;
 }
 
-.evaluationMap {
+.addUser, .editCourse {
+  display: grid;
+  place-items: center;
+}
+
+input, input[type="password"] {
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+.evaluationMap, .addUser, .editCourse {
   background-color: #f0f4f7;
   padding: 10px;
   border: 1px solid #333;
@@ -40,8 +69,6 @@ button:hover {
 }
 
 .table {
-  table-layout: fixed;
-
   margin: 20px 0;
   font-family: Arial, sans-serif;
   font-size: 14px;
