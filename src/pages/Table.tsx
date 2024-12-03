@@ -4,30 +4,13 @@ import React, {useState} from 'react';
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
-import { default as ReactSelect, components } from "react-select";
+import { default as Select, components } from "react-select";
 
-import { data } from './data.tsx'
+import { data, evaluationTypes } from './data.tsx'
 import { evaluationMoments } from './data.tsx'
 import { elements } from './data.tsx'
 import { courses } from './data.tsx'
 import { ucs } from './data.tsx'
-
-
-const Option = ( props) => {
-  return (
-    <div>
-      <components.Option {...props}>
-        <input
-          type="checkbox"
-          checked={props.isSelected}
-          onChange={() => null}
-        />{" "}
-        <label>{props.label}</label>
-      </components.Option>
-    </div>
-  );
-};
-
 
 function Admin() {
 
@@ -70,17 +53,9 @@ function Admin() {
     setIsEditCShown(current => !current);
   }
 
-
-  const [isChecked, setIsChecked] = useState({optionSelected: null});
-
-  const handleChange = (selected) => {
-    setIsChecked({
-      optionSelected: selected
-    });
-  };
-
   return (
     <>
+    <h1>Departamento de Ciência e Tecnologia</h1>
     <div className='admin'>
 
       <div className='buttons'>
@@ -118,13 +93,12 @@ function Admin() {
                       value={password}
                 />
             </Form.Group>
-            <select>
-              {courses.map((course, courseIndex) => (
-                <option key={courseIndex} value={course.course}>
-                  {course.course}
-                </option>
-              ))}
-            </select>
+              <Select
+                  name="courses"
+                  options={courses}
+                  closeMenuOnSelect={true}
+                  hideSelectedOptions={false}
+                />
             <Button type="submit" disabled={!validateUser()}>Adicionar</Button>
           </Form>
         </div>
@@ -134,13 +108,15 @@ function Admin() {
       {isEditCShown && (
         <div className='editCourse'>
           <Form onSubmit={handleSubmit}>
-            <select>
-              {courses.map((course, courseIndex) => (
-                <option key={courseIndex} value={course.course}>
-                  {course.course}
-                </option>
-              ))}
-            </select>
+
+            {/* Isto tem de desaparecer caso seja um coordenador porque ele só deve ter acesso ao seu curso */}
+            <Select
+              name="courses"
+              options={courses}
+              closeMenuOnSelect={true}
+              hideSelectedOptions={false}
+            />
+            
             <Form.Group controlId="name">
               <Form.Label>Nome</Form.Label>
                 <Form.Control
@@ -150,16 +126,12 @@ function Admin() {
                 />
             </Form.Group>
             <Form.Group controlId="subjects">
-              <ReactSelect
-                options={ucs}
+              <Select
                 isMulti
+                name="subjects"
+                options={ucs}
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
-                components={{
-                  Option
-                }}
-                onChange={handleChange}
-                value={isChecked.optionSelected}
               />
               <Form.Label>Nova UC</Form.Label>
                 <Form.Control
@@ -216,21 +188,22 @@ function Admin() {
                       />
                     </td>
                     <td>
-                      <select>
-                        <option value="Mista">Mista</option>
-                        <option value="Contínua">Contínua</option>
-                      </select>
+                    <Select
+                      name="evalTypes"
+                      options={evaluationTypes}
+                      closeMenuOnSelect={true}
+                      hideSelectedOptions={false}
+                    />
                     </td>
                     {evaluationMoments.map((_, momentIndex) => (
                       <>
                         <td key={`select-element-${index}-${momentIndex}`}>
-                          <select>
-                            {elements.map((el, elIndex) => (
-                              <option key={elIndex} value={el.element}>
-                                {el.element}
-                              </option>
-                            ))}
-                          </select>
+                          <Select
+                            name="elements"
+                            options={elements}
+                            closeMenuOnSelect={true}
+                            hideSelectedOptions={false}
+                          />
                         </td>
                         <td>{line.ponderacao}</td>
                         <td>{line.data}</td>
