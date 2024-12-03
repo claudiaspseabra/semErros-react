@@ -14,12 +14,12 @@ import { ucs } from './data.tsx'
 
 function Admin() {
 
-  const [username, setName] = useState("");
+  const [name, setName] = useState("");
   const [number, setNumber] = useState("");
   const [password, setPassword] = useState("");
 
   function validateUser() {
-    return username.length > 0 && number.length > 0 && password.length > 0;
+    return name.length > 0 && number.length > 0 && password.length > 0;
   }
 
   const [course, setCourse] = useState("");
@@ -74,7 +74,8 @@ function Admin() {
                 <Form.Control
                     autoFocus
                     type="text"
-                    value={username}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                 />
             </Form.Group>
               <Form.Group controlId="number">
@@ -83,6 +84,7 @@ function Admin() {
                       autoFocus
                       type="number"
                       value={number}
+                      onChange={(e) => setNumber(e.target.value)}
                   />
               </Form.Group>
             <Form.Group controlId="password">
@@ -91,6 +93,7 @@ function Admin() {
                       autoFocus
                       type="password"
                       value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                 />
             </Form.Group>
               <Select
@@ -123,6 +126,7 @@ function Admin() {
                     autoFocus
                     type="text"
                     value={course}
+                    onChange={(e) => setCourse(e.target.value)}
                 />
             </Form.Group>
             <Form.Group controlId="subjects">
@@ -138,9 +142,10 @@ function Admin() {
                     autoFocus
                     type="text"
                     value={uc}
+                    onChange={(e) => setUC(e.target.value)}
                 />
             </Form.Group>
-            <Button type="submit" disabled={!validateUser()}>Editar</Button>
+            <Button type="submit" disabled={!validateCourse()}>Editar</Button>
           </Form>
         </div>
       )};
