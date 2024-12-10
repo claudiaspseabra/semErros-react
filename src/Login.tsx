@@ -2,7 +2,9 @@ import { useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
-import "./Login.css"
+import { default as Select } from "react-select";
+
+import "./styles/Login.css"
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -19,6 +21,7 @@ function Login() {
     return (
         <>
         <div className="Login">
+        
             <Form onSubmit={handleSubmit}>
                 <select>
                     <option value="Admin">Diretor</option>

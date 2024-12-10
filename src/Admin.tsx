@@ -1,4 +1,4 @@
-import './Table.css'
+import './styles/Admin.css'
 
 import React, {useState} from 'react';
 import Form from "react-bootstrap/Form";
@@ -6,11 +6,7 @@ import Button from "react-bootstrap/Button";
 
 import { default as Select } from "react-select";
 
-import { data, evaluationTypes } from './data.tsx'
-import { evaluationMoments } from './data.tsx'
-import { elements } from './data.tsx'
-import { courses } from './data.tsx'
-import { ucs } from './data.tsx'
+import { data, evaluationTypes, evaluationMoments, elements, courses, ucs } from './data.tsx'
 
 function Admin() {
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-interface User {
+interface Classroom {
   classroomId: number;
   tag: string;
   description: string;
@@ -11,26 +11,23 @@ interface User {
 }
 
 const Fetch: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
 
   useEffect(() => {
     fetch('http://localhost:8080/app/classrooms')
       .then((res) => res.json())
-      .then((data: User[]) => {
+      .then((data: Classroom[]) => {
         console.log(data);
-        setUsers(data);
+        setClassrooms(data);
       })
       .catch(error => console.error("Error: ", error));
   }, []);
 
   return (
-    <div>
-      <h1>hello</h1>
-      {users.map((user) => (
-        <h1>{user.classroomId + "," + user.tag + "," + user.description + "," + user.capacity}</h1>
-      ))}
-    </div>
-  );
-};
+      classrooms.map((classroom) => (
+        <>{classroom.tag}</>
+      ))
+  )
+}
 
 export default Fetch;

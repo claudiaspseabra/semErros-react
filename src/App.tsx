@@ -1,7 +1,7 @@
-import Header from "./pages/Header";
-import Login from "./pages/Login"
-import Admin from "./pages/Table";
-import Fetch from "./pages/Fetch";
+import Header from "./Header";
+import Login from "./Login"
+import Admin from "./Admin";
+import Fetch from "./FetchTest";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
