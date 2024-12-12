@@ -48,27 +48,3 @@ export const elements = [
     { value: "Exame Final", label: "Exame Final" },
     { value: "Prova Oral", label: "Prova Oral" }
 ];
-  
-{/* Só tem as cadeiras de EI */}
-export const subjects = [
-    { ano: "1", value: "ALGA", label: "ALGA"},
-    { ano: "1", value: "AP", label: "AP"},
-    { ano: "1", value: "AOC", label: "AOC"},
-    { ano: "1", value: "AM", label: "AM"},
-    { ano: "1", value: "CC", label: "CC"},
-    { ano: "2", value: "EA", label: "EA"},
-    { ano: "2", value: "AED", label: "AED"},
-    { ano: "2", value: "SO", label: "SO"},
-    { ano: "2", value: "LP", label: "LP"},
-    { ano: "2", value: "ER", label: "ER"},
-    { ano: "3", value: "IA", label: "IA"},
-    { ano: "3", value: "QS", label: "QS"},
-    { ano: "3", value: "EMP", label: "EMP"},
-    { ano: "3", value: "GP", label: "GP"}
-];
-
-export const courses = [
-    { value: "Engenharia e Gestão Industrial", duration: "3", label: "Engenharia e Gestão Industrial"},
-    { value: "Engenharia Informática", label: "Engenharia Informática"},
-    { value: "Sistemas de Informação para Gestão", label: "Sistemas de Informação para Gestão"}
-];

@@ -46,7 +46,7 @@ function Admin() {
     setSelectedSemester(semester);
   };
 
-  // Campos
+  // Campos e submits
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -55,15 +55,27 @@ function Admin() {
     return name.length > 0 && number.length > 0 && password.length > 0;
   }
 
-  const [uc, setUC] = useState("");
-
-  function validateCourse() {
-    return uc.length > 0;
-  }
-
   function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
   }
+
+  function validateCourse() {
+    return name.length > 0 && number.length > 0 && password.length > 0;
+  }
+
+  const [subjectName, setSubjectName] = useState("");
+  const [subjectSemester, setSubjectSemester] = useState("");
+  const [subjectYear, setSubjectYear] = useState("");
+  const [subjectStudentsEnrolled, setSubjectStudentsEnrolled] = useState("");
+
+  const handleAddUCSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
+    setSubjectName("");
+    setSubjectSemester("");
+    setSubjectYear("");
+    setSubjectStudentsEnrolled("");
+  };
   
   // Aparecer e desaparecer on button click
     // Adicionar utilizador
@@ -78,6 +90,12 @@ function Admin() {
     setIsEditCShown(current => !current);
   }
 
+      // Adicionar uc
+      const [isAddSubjectShown, setIsSubjectShown] = useState(false);
+      const showAddSubject = () => {
+        setIsSubjectShown(current => !current);
+      }
+    
     // Mapa de avaliações
   const [isEvalMapShown, setIsEvalMapShown] = useState(false);
   const showEvaluationMap = () => {
@@ -148,6 +166,7 @@ function Admin() {
       {/* Edit course */}
       {isEditCShown && (
         <div className="editCourse">
+
           <Form onSubmit={handleSubmit}>
             <Select
               name="courses"
@@ -189,14 +208,55 @@ function Admin() {
                 </div>
               )}
 
-              <Form.Label>Nova UC</Form.Label>
-              <Form.Control
-                autoFocus
-                type="text"
-                value={uc}
-                onChange={(e) => setUC(e.target.value)}
-              />
-            </Form.Group>
+                <button onClick={showAddSubject}>Adicionar UC</button>
+               </Form.Group>
+
+            {isAddSubjectShown && (
+              <div className="addSubject">
+                <Form onSubmit={handleAddUCSubmit}>
+                  <Form.Group controlId="ucName">
+                    <Form.Label>Nome</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={subjectName}
+                      onChange={(e) => setSubjectName(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="ucSemester">
+                    <Form.Label>Semestre</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={subjectSemester}
+                      onChange={(e) => setSubjectSemester(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group controlId="ucYear">
+                    <Form.Label>Ano</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={subjectYear}
+                      onChange={(e) => setSubjectYear(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group controlId="numStudents">
+                    <Form.Label>Número de Estudantes</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={subjectStudentsEnrolled}
+                      onChange={(e) => setSubjectStudentsEnrolled(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+                  <Button type="submit" disabled={!subjectName || !subjectSemester || !subjectYear || !subjectStudentsEnrolled}>Adicionar</Button>
+                  </Form>
+              </div>
+            )}
+
             <Button type="submit" disabled={!validateCourse()}>
               Editar
             </Button>
