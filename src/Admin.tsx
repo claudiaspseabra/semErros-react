@@ -6,9 +6,13 @@ import Button from "react-bootstrap/Button";
 
 import { default as Select } from "react-select";
 
-import { data, evaluationTypes, evaluationMoments, elements, courses, subjects } from './Data.tsx'
+import { data, evaluationTypes, evaluationMoments, elements, subjects } from './Data.tsx'
+
+import Fetch from './FetchCourses.tsx';
 
 function Admin() {
+
+  const [courses, setCourses] = useState<{ value: number; label: string }[]>([]);
 
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
@@ -18,11 +22,10 @@ function Admin() {
     return name.length > 0 && number.length > 0 && password.length > 0;
   }
 
-  const [course, setCourse] = useState("");
   const [uc, setUC] = useState("");
 
   function validateCourse() {
-    return course.length > 0 && uc.length > 0;
+    return uc.length > 0;
   }
 
   function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
@@ -51,6 +54,9 @@ function Admin() {
 
   return (
     <>
+
+    <Fetch onFetchComplete={setCourses} />
+
     <h1>Departamento de Ciência e Tecnologia</h1>
     <div className='admin'>
 
