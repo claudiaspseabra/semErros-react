@@ -6,7 +6,7 @@ import Button from "react-bootstrap/Button";
 
 import { default as Select } from "react-select";
 
-import { data, evaluationTypes, evaluationMoments, elements, courses, ucs } from './data.tsx'
+import { data, evaluationTypes, evaluationMoments, elements, courses, subjects } from './Data.tsx'
 
 function Admin() {
 
@@ -61,7 +61,7 @@ function Admin() {
       </div>
 
 
-      {/* Add user */}
+      {/* Add user - Desaparece se for um coordenador*/}
       {isAddUserShown && (
         <div className='addUser'>
         <Form onSubmit={handleSubmit}>
@@ -115,21 +115,11 @@ function Admin() {
               closeMenuOnSelect={true}
               hideSelectedOptions={false}
             />
-            
-            <Form.Group controlId="name">
-              <Form.Label>Nome</Form.Label>
-                <Form.Control
-                    autoFocus
-                    type="text"
-                    value={course}
-                    onChange={(e) => setCourse(e.target.value)}
-                />
-            </Form.Group>
             <Form.Group controlId="subjects">
               <Select
                 isMulti
                 name="subjects"
-                options={ucs}
+                options={subjects}
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
               />
@@ -178,6 +168,8 @@ function Admin() {
               </tr>
             </thead>
             <tbody>
+              
+
             {data.map((line, index) => (
                   <tr key={index}>
                     <td>{line.ano}</td>

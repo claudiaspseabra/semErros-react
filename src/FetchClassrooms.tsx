@@ -25,7 +25,7 @@ const Fetch: React.FC = () => {
 
   return (
       classrooms.map((classroom) => (
-        <>{classroom.tag}</>
+      <h1>{classroom.classroomId + "," + classroom.tag + "," + classroom.description + "," + classroom.capacity}</h1>   
       ))
   )
 }

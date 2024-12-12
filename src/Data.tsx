@@ -50,7 +50,7 @@ export const elements = [
 ];
   
 {/* Só tem as cadeiras de EI */}
-export const ucs = [
+export const subjects = [
     { ano: "1", value: "ALGA", label: "ALGA"},
     { ano: "1", value: "AP", label: "AP"},
     { ano: "1", value: "AOC", label: "AOC"},
@@ -66,9 +66,9 @@ export const ucs = [
     { ano: "3", value: "EMP", label: "EMP"},
     { ano: "3", value: "GP", label: "GP"}
 ];
-  
+
 export const courses = [
-    { value: "Engenharia e Gestão Industrial", label: "Engenharia e Gestão Industrial"},
+    { value: "Engenharia e Gestão Industrial", duration: "3", label: "Engenharia e Gestão Industrial"},
     { value: "Engenharia Informática", label: "Engenharia Informática"},
     { value: "Sistemas de Informação para Gestão", label: "Sistemas de Informação para Gestão"}
 ];
