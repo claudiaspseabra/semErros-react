@@ -10,24 +10,27 @@ interface Classroom {
   classroomInUseDate: Date;
 }
 
-const Fetch: React.FC = () => {
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-
-  useEffect(() => {
-    fetch('http://localhost:8080/app/classrooms')
-      .then((res) => res.json())
-      .then((data: Classroom[]) => {
-        console.log(data);
-        setClassrooms(data);
-      })
-      .catch(error => console.error("Error: ", error));
-  }, []);
-
-  return (
-      classrooms.map((classroom) => (
-      <h1>{classroom.classroomId + "," + classroom.tag + "," + classroom.description + "," + classroom.capacity}</h1>   
-      ))
-  )
+interface FetchProps {
+  onFetchComplete: (classrooms: { value: number; label: string }[]) => void;
 }
+
+const Fetch: React.FC<FetchProps> = ({ onFetchComplete }) => {
+  useEffect(() => {
+    fetch("http://localhost:8080/app/classrooms")
+      .then((res) => res.json())
+      .then((data) => {
+        const formattedClassrooms = (Array.isArray(data) ? data : [data]).map(
+          (classroom: Classroom) => ({
+            value: classroom.classroomId,
+            label: classroom.description,
+          })
+        );
+        onFetchComplete(formattedClassrooms);
+      })
+      .catch((error) => console.error("Error:", error));
+  }, [onFetchComplete]);
+
+  return null;
+};
 
 export default Fetch;

@@ -1,4 +1,5 @@
 import './styles/Admin.css'
+import './styles/Table.css'
 
 import React, {useState} from 'react';
 import Form from "react-bootstrap/Form";
@@ -6,14 +7,46 @@ import Button from "react-bootstrap/Button";
 
 import { default as Select } from "react-select";
 
-import { data, evaluationTypes, evaluationMoments, elements, subjects } from './Data.tsx'
+import { data, evaluationTypes, evaluationMoments, elements } from './Data.tsx'
 
-import Fetch from './FetchCourses.tsx';
+import FetchCourses from './FetchCourses.tsx';
+import FetchSubjects from './FetchSubjects.tsx';
 
 function Admin() {
 
+  // Fetchs
   const [courses, setCourses] = useState<{ value: number; label: string }[]>([]);
+  const [subjects, setSubjects] = useState<{ value: number; course: number; label: string }[]>([]);
 
+
+  // Obter id do curso
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+
+  // Obter cadeiras do curso selecionado
+  const filteredSubjects = subjects.filter(
+    (subject) => subject.course === selectedCourse
+  );
+
+  //Selecionar e apagar cadeiras
+  const [selectedSubjects, setSelectedSubjects] = useState<{ value: number; label: string }[]>([]);
+  const handleSubjectSelect = (selectedOptions: any) => {
+    setSelectedSubjects(selectedOptions || []);
+  };
+
+  const handleRemoveSubject = (subjectToRemove: { value: number; label: string }) => {
+    setSelectedSubjects((prev) =>
+      prev.filter((subject) => subject.value !== subjectToRemove.value)
+    );
+  };
+
+  // Toggle button para selecionar o semestre a que o mapa vai corresponder
+  const [selectedSemester, setSelectedSemester] = useState<'1º semestre' | '2º semestre'>('1º semestre');
+
+  const toggleSemester = (semester: '1º semestre' | '2º semestre') => {
+    setSelectedSemester(semester);
+  };
+
+  // Campos
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -31,35 +64,38 @@ function Admin() {
   function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
   }
-
-  {/* Provavelmente há uma forma melhor*/}
-
+  
+  // Aparecer e desaparecer on button click
+    // Adicionar utilizador
   const [isAddUserShown, setIsAddUserShown] = useState(false);
-
   const showAddUser = () => {
     setIsAddUserShown(current => !current);
   }
 
-  const [isEvalMapShown, setIsEvalMapShown] = useState(false);
-
-  const showEvaluationMap = () => {
-    setIsEvalMapShown(current => !current);
-  }
-
+    // Editar curso
   const [isEditCShown, setIsEditCShown] = useState(false);
-
   const showEditCourse = () => {
     setIsEditCShown(current => !current);
+  }
+
+    // Mapa de avaliações
+  const [isEvalMapShown, setIsEvalMapShown] = useState(false);
+  const showEvaluationMap = () => {
+    setIsEvalMapShown(current => !current);
   }
 
   return (
     <>
 
-    <Fetch onFetchComplete={setCourses} />
+    {/* Fetch dos cursos e das cadeiras */}
+    <FetchCourses onFetchComplete={setCourses} />
+    <FetchSubjects onFetchComplete={setSubjects} />
+
 
     <h1>Departamento de Ciência e Tecnologia</h1>
     <div className='admin'>
 
+      {/* Buttons principais */}
       <div className='buttons'>
         <button onClick={showAddUser}>Criar coordenador</button>
         <button onClick={showEditCourse}>Editar curso</button>
@@ -67,7 +103,7 @@ function Admin() {
       </div>
 
 
-      {/* Add user - Desaparece se for um coordenador*/}
+      {/* Add user - Desaparecer se for um coordenador*/}
       {isAddUserShown && (
         <div className='addUser'>
         <Form onSubmit={handleSubmit}>
@@ -111,39 +147,78 @@ function Admin() {
       
       {/* Edit course */}
       {isEditCShown && (
-        <div className='editCourse'>
+        <div className="editCourse">
           <Form onSubmit={handleSubmit}>
-
-            {/* Isto tem de desaparecer caso seja um coordenador porque ele só deve ter acesso ao seu curso */}
             <Select
               name="courses"
               options={courses}
               closeMenuOnSelect={true}
               hideSelectedOptions={false}
+              onChange={(selectedOption) =>
+                setSelectedCourse(selectedOption?.value || null)
+              }
             />
+
             <Form.Group controlId="subjects">
               <Select
                 isMulti
                 name="subjects"
-                options={subjects}
+                options={filteredSubjects}
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
+                onChange={handleSubjectSelect}
               />
+
+              {selectedSubjects.length > 0 && (
+                <div>
+                  <text>Disciplinas selecionadas:</text>
+                  <ul>
+                    {selectedSubjects.map((subject) => (
+                      <li key={subject.value}>
+                        {subject.label}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSubject(subject)}
+                          style={{ color: 'red' }}
+                        >
+                          Remover
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <Form.Label>Nova UC</Form.Label>
-                <Form.Control
-                    autoFocus
-                    type="text"
-                    value={uc}
-                    onChange={(e) => setUC(e.target.value)}
-                />
+              <Form.Control
+                autoFocus
+                type="text"
+                value={uc}
+                onChange={(e) => setUC(e.target.value)}
+              />
             </Form.Group>
-            <Button type="submit" disabled={!validateCourse()}>Editar</Button>
+            <Button type="submit" disabled={!validateCourse()}>
+              Editar
+            </Button>
           </Form>
         </div>
       )};
 
       {/* Evaluation Map */}
       {isEvalMapShown && (
+        <>
+        <div className="toggle-container">
+          <button
+            className={`toggle-button ${selectedSemester === '1º semestre' ? 'active' : ''}`}
+            onClick={() => toggleSemester('1º semestre')}
+          > 1º Semestre</button>
+
+          <button
+            className={`toggle-button ${selectedSemester === '2º semestre' ? 'active' : ''}`}
+            onClick={() => toggleSemester('2º semestre')}
+          > 2º Semestre</button>
+        </div>
+
         <div className='evaluationMap'>
           <h1>Engenharia Informática</h1>
           <h2>Época normal</h2>
@@ -216,6 +291,7 @@ function Admin() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <button id="logoff">Logoff</button>
