@@ -21,6 +21,7 @@ function Admin() {
 
   // Obter id do curso
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [selectedCourseLabel, setSelectedCourseLabel] = useState<string | null>(null);
 
   // Obter cadeiras do curso selecionado
   const subjectsByCourse = subjects.filter(
@@ -279,35 +280,40 @@ function Admin() {
       {/* Evaluation Map */}
       {isEvalMapShown && (
         <>
-            <Select
-              name="courses"
-              options={courses}
-              closeMenuOnSelect={true}
-              hideSelectedOptions={false}
-              onChange={(selectedOption) =>
-                setSelectedCourse(selectedOption?.value || null)
-              }
-            />
+        {/*Escolher curso para a tabela*/}
+        <Select
+          name="courses"
+          options={courses}
+          closeMenuOnSelect={true}
+          hideSelectedOptions={false}
+          onChange={(selectedOption) => 
+            {
+            setSelectedCourse(selectedOption?.value || null)
+            setSelectedCourseLabel(selectedOption?.label || null)
+            }
+          }
+        />
 
+        {/*Escolher semestre para a tabela*/}
         <div className="toggle-container">
-          <button
+        <button
             className={`toggle-button ${selectedSemester === '1º Semestre' ? 'active' : ''}`}
             onClick={() =>
               toggleSemester('1º Semestre')
              }
           > 1º Semestre</button>
 
-          <button
+        <button
             className={`toggle-button ${selectedSemester === '2º Semestre' ? 'active' : ''}`}
-            onClick={() => 
+            onClick={() =>
               toggleSemester('2º Semestre')
-            }
+             }
           > 2º Semestre</button>
         </div>
 
         <div className='evaluationMap'>
 
-          <h1>Engenharia Informática</h1>
+          <h1>{selectedCourseLabel}</h1>
           <h2>Época normal</h2>
           <h3>{selectedSemester} 2024/2025</h3>
 
@@ -326,13 +332,13 @@ function Admin() {
                 <th>Assiduidade Obrigatória (S/N)</th>
                 <th>Tipo de avaliação</th>
 
-                {evaluationMoments.map((index) => (
+                {evaluationMoments.map(() => (
                     <>
-                      <th key={`elemento-${index}`}>Elemento</th>
-                      <th key={`ponderacao-${index}`}>Ponderação</th>
-                      <th key={`data-${index}`}>Data</th>
-                      <th key={`hora-${index}`}>Hora</th>
-                      <th key={`sala-${index}`}>Sala</th>
+                      <th key={'elemento-${index}'}>Elemento</th>
+                      <th key={'ponderacao-${index}'}>Ponderação</th>
+                      <th key={'data-${index}'}>Data</th>
+                      <th key={'hora-${index}'}>Hora</th>
+                      <th key={'sala-${index}'}>Sala</th>
                     </>
                   ))}
               </tr>
@@ -349,6 +355,9 @@ function Admin() {
                       <td rowSpan={subjectsInYear.length}>{subject.year}º Ano</td>
                     )}
                     <td>{subject.label}</td>
+
+                    {/*Não sei se daqui para baixo não terá de ser um form*/}
+
                     {/* Assiduidade */}
                     <td>
                       <input type="text"/>
@@ -363,9 +372,9 @@ function Admin() {
                       />
                     </td>
                     {/*Tipos de avaliações (teste, trabalho)*/}
-                    {evaluationMoments.map((_, momentIndex) => (
+                    {evaluationMoments.map(() => (
                       <>
-                        <td key={`elemento-${subject.value}-${momentIndex}`}>
+                        <td key={'elemento-${subject.value}-${momentIndex}'}>
                           <Select
                             name="elements"
                             options={elements}
@@ -373,27 +382,32 @@ function Admin() {
                             hideSelectedOptions={false}
                           />
                         </td>
-                        <td key={`ponderacao-${subject.value}-${momentIndex}`}>
+                        <td key={'ponderacao-${subject.value}-${momentIndex}'}>
                           <input type="text"/>
                         </td>
-                        <td key={`data-${subject.value}-${momentIndex}`}>10/06/2025</td>
-                        <td key={`hora-${subject.value}-${momentIndex}`}>14:00</td>
-                        <td key={`sala-${subject.value}-${momentIndex}`}>A-101</td>
+                        <td key={'data-${subject.value}-${momentIndex}'}>10/06/2025</td>
+                        <td key={'hora-${subject.value}-${momentIndex}'}>14:00</td>
+                        <td key={'sala-${subject.value}-${momentIndex}'}>A-101</td>
                       </>
                     ))}
+                    
+                    <td>
+                      <button type="button" >✔</button>
+                    </td>
                   </tr>
                 ));
               })}
             </tbody>
           </table>
+
+          <button>Submeter</button>
         </div>
         </>
       )};
 
       <button id="logoff">Logoff</button>
 
-    
-  </div>
+      </div>
   </>
   );
 }

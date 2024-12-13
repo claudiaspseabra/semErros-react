@@ -1,30 +1,7 @@
-{/* Exemplo - fazer funcionar sem isto */}
-export const data = [
-    {
-      ano: "1º ano",
-      unidadeCurricular: "Algoritmia e Programação",
-      assiduidade: "N",
-      elemento: "Teste",
-      ponderacao: "50% e nota mínima 7 valores",
-      data: "04-11-2024",
-      hora: "10h",
-      sala: "Aula 101"
-    },
-    {
-      ano: "2º ano",
-      unidadeCurricular: "Engenharia de Software",
-      assiduidade: "S",
-      elemento: "Projeto",
-      ponderacao: "40%",
-      data: "15-11-2024",
-      hora: "14h",
-      sala: "Lab 3"
-    }
-];
-  
+
 export const evaluationTypes = [
-    {value: "contínua", label: "contínua"},
-    {value: "mista", label: "mista"}
+    {value: "contínua", label: "Contínua"},
+    {value: "mista", label: "Mista"}
 ]
 
 
