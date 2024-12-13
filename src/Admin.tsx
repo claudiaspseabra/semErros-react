@@ -1,13 +1,16 @@
 import './styles/Admin.css'
 import './styles/Table.css'
+import 'react-datepicker/dist/react-datepicker.css';
 
 import React, {useState} from 'react';
-import Form from "react-bootstrap/Form";
+import { useNavigate } from "react-router-dom";
+import Form from 'react-bootstrap/Form';
 import Button from "react-bootstrap/Button";
+import DatePicker from 'react-datepicker';
 
 import { default as Select } from "react-select";
 
-import { data, evaluationTypes, evaluationMoments, elements } from './Data.tsx'
+import { evaluationTypes, evaluationMoments, elements } from './Data.tsx'
 
 import FetchCourses from './FetchCourses.tsx';
 import FetchSubjects from './FetchSubjects.tsx';
@@ -34,12 +37,34 @@ function Admin() {
     setSelectedSubjects(selectedOptions || []);
   };
 
-  const handleRemoveSubject = (subjectToRemove: { value: number; label: string }) => {
-    setSelectedSubjects((prev) =>
-      prev.filter((subject) => subject.value !== subjectToRemove.value)
-    );
-  };
+  async function handleRemoveSubject(subjectToRemove: {value: number, label: string}) {
+    const confirmDelete = window.confirm('Tem certeza que deseja remover a disciplina:' + subjectToRemove.label + '?');
+  
+    if (!confirmDelete) return;
+  
+    try {
+      const response = await fetch('http://localhost:8080/app/subjects/32', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
+      if (response.ok) {
+        setSelectedSubjects((prev) =>
+          prev.filter((subject) => subject.value !== subjectToRemove.value)
+        );
+  
+        setSubjects((prevSubjects) =>
+          prevSubjects.filter((subject) => subject.value !== subjectToRemove.value)
+        );
+  
+        alert('Unidade Curricular removida com sucesso!');
+      } else {
+        alert('Erro ao remover Unidade Curricular.');
+      }
+    } catch (error) {
+      alert('Erro na comunicação com o servidor!');
+    }
+  }
 
   // Toggle button para selecionar o semestre a que o mapa vai corresponder
   const [selectedSemester, setSelectedSemester] = useState<'1º Semestre' | '2º Semestre'>('1º Semestre');
@@ -59,19 +84,42 @@ function Admin() {
 
   // Campos e submits
   const [name, setName] = useState("");
-  const [number, setNumber] = useState("");
+  const [username, setUserName] = useState("");
   const [password, setPassword] = useState("");
 
   function validateUser() {
-    return name.length > 0 && number.length > 0 && password.length > 0;
+    return name.length > 0 && username.length > 0 && password.length > 0;
   }
 
-  function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
+  async function handleUserSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-  }
-
-  function validateCourse() {
-    return name.length > 0 && number.length > 0 && password.length > 0;
+    
+    const userData = {
+      name,
+      username,
+      password
+    };
+    
+    try {
+      const response = await fetch('http://localhost:8080/app/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+      
+      if (response.ok) {
+        alert('Coordenador criado com sucesso!');
+        setName('');
+        setUserName('');
+        setPassword('');
+      } else {
+        alert('Erro ao criar coordenador!');
+      }
+    } catch (error) {
+      alert('Erro na comunicação com o servidor.');
+    }
   }
 
   const [subjectName, setSubjectName] = useState("");
@@ -79,15 +127,40 @@ function Admin() {
   const [subjectYear, setSubjectYear] = useState("");
   const [subjectStudentsEnrolled, setSubjectStudentsEnrolled] = useState("");
 
-  const handleAddUCSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+  async function handleAddSubjectSubmit (event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    
-    setSubjectName("");
-    setSubjectSemester("");
-    setSubjectYear("");
-    setSubjectStudentsEnrolled("");
-  };
-  
+
+    const newSubject = {
+      label: subjectName,
+      semester: subjectSemester,
+      year: subjectYear,
+      studentsEnrolled: subjectStudentsEnrolled,
+      course: selectedCourse
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/app/subjects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSubject),
+      });
+
+      if (response.ok) {
+        alert('Curso editado com sucesso!');
+        setSubjectName('');
+        setSubjectSemester('');
+        setSubjectYear('');
+        setSubjectStudentsEnrolled('');
+      } else {
+        alert('Erro ao editar o curso!');
+      }
+    } catch (error) {
+      alert('Erro na comunicação com o servidor!');
+    }
+  }
+
   // Aparecer e desaparecer on button click
     // Adicionar utilizador
   const [isAddUserShown, setIsAddUserShown] = useState(false);
@@ -113,6 +186,14 @@ function Admin() {
     setIsEvalMapShown(current => !current);
   }
 
+  //Logoff
+  const navigate = useNavigate();
+  const handleLogoff = () => {
+    localStorage.removeItem('user');
+
+    navigate('/');
+  };
+
   return (
     <>
 
@@ -135,7 +216,7 @@ function Admin() {
       {/* Add user - Desaparecer se for um coordenador*/}
       {isAddUserShown && (
         <div className='addUser'>
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleUserSubmit}>
             <Form.Group controlId="name">
               <Form.Label>Nome</Form.Label>
                 <Form.Control
@@ -146,12 +227,12 @@ function Admin() {
                 />
             </Form.Group>
               <Form.Group controlId="number">
-                <Form.Label>Número</Form.Label>
+                <Form.Label>Username</Form.Label>
                   <Form.Control
                       autoFocus
-                      type="number"
-                      value={number}
-                      onChange={(e) => setNumber(e.target.value)}
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUserName(e.target.value)}
                   />
               </Form.Group>
             <Form.Group controlId="password">
@@ -163,22 +244,16 @@ function Admin() {
                       onChange={(e) => setPassword(e.target.value)}
                 />
             </Form.Group>
-              <Select
-                  name="courses"
-                  options={courses}
-                  closeMenuOnSelect={true}
-                  hideSelectedOptions={false}
-                />
             <Button type="submit" disabled={!validateUser()}>Adicionar</Button>
           </Form>
         </div>
-      )};
+      )}
       
       {/* Edit course */}
       {isEditCShown && (
         <div className="editCourse">
 
-          <Form onSubmit={handleSubmit}>
+          <Form>
             <Select
               name="courses"
               options={courses}
@@ -209,23 +284,20 @@ function Admin() {
                         <button
                           type="button"
                           onClick={() => handleRemoveSubject(subject)}
-                          style={{ color: 'red' }}
-                        >
-                          Remover
-                        </button>
+                          style={{ color: 'red' }}>Remover</button>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
+            </Form.Group>
 
-                <button onClick={showAddSubject}>Adicionar UC</button>
-               </Form.Group>
+            <button type='button' onClick={showAddSubject}>Adicionar UC</button>
 
-            {isAddSubjectShown && (
+            {isAddSubjectShown && selectedCourse && (
               <div className="addSubject">
-                <Form onSubmit={handleAddUCSubmit}>
-                  <Form.Group controlId="ucName">
+                <Form onSubmit={handleAddSubjectSubmit}>
+                  <Form.Group controlId="subjectName">
                     <Form.Label>Nome</Form.Label>
                     <Form.Control
                       type="text"
@@ -234,7 +306,7 @@ function Admin() {
                       required
                     />
                   </Form.Group>
-                  <Form.Group controlId="ucSemester">
+                  <Form.Group controlId="subjectSemester">
                     <Form.Label>Semestre</Form.Label>
                     <Form.Control
                       type="number"
@@ -244,7 +316,7 @@ function Admin() {
                     />
                   </Form.Group>
 
-                  <Form.Group controlId="ucYear">
+                  <Form.Group controlId="subjectYear">
                     <Form.Label>Ano</Form.Label>
                     <Form.Control
                       type="number"
@@ -267,13 +339,9 @@ function Admin() {
                   </Form>
               </div>
             )}
-
-            <Button type="submit" disabled={!validateCourse()}>
-              Editar
-            </Button>
           </Form>
         </div>
-      )};
+      )}
 
 
 
@@ -334,11 +402,11 @@ function Admin() {
 
                 {evaluationMoments.map(() => (
                     <>
-                      <th key={'elemento-${index}'}>Elemento</th>
+                      <th key={'element-${index}'}>Elemento</th>
                       <th key={'ponderacao-${index}'}>Ponderação</th>
-                      <th key={'data-${index}'}>Data</th>
-                      <th key={'hora-${index}'}>Hora</th>
-                      <th key={'sala-${index}'}>Sala</th>
+                      <th key={'date-${index}'}>Data</th>
+                      <th key={'time-${index}'}>Hora</th>
+                      <th key={'classroom-${index}'}>Sala</th>
                     </>
                   ))}
               </tr>
@@ -348,7 +416,7 @@ function Admin() {
               {[...new Set(subjectsByCourseSemester.map((subject) => subject.year))].map((year) => {
                 const subjectsInYear = subjectsByCourseSemester.filter(
                   (subject) => subject.year === year
-                );
+                )
                 return subjectsInYear.map((subject, index) => (
                   <tr key={subject.value}>
                     {index === 0 && (
@@ -372,9 +440,9 @@ function Admin() {
                       />
                     </td>
                     {/*Tipos de avaliações (teste, trabalho)*/}
-                    {evaluationMoments.map(() => (
+                    {evaluationMoments.map((_, momentIndex) => (
                       <>
-                        <td key={'elemento-${subject.value}-${momentIndex}'}>
+                        <td key={'element-${subject.value}-${momentIndex}'}>
                           <Select
                             name="elements"
                             options={elements}
@@ -385,9 +453,30 @@ function Admin() {
                         <td key={'ponderacao-${subject.value}-${momentIndex}'}>
                           <input type="text"/>
                         </td>
-                        <td key={'data-${subject.value}-${momentIndex}'}>10/06/2025</td>
-                        <td key={'hora-${subject.value}-${momentIndex}'}>14:00</td>
-                        <td key={'sala-${subject.value}-${momentIndex}'}>A-101</td>
+                        <td key={'date-${subject.value}-${momentIndex}'}>
+                        
+                        {/*<DatePicker
+                          selected={date['date-${subject.value}-${momentIndex}'] || null}
+                          dateFormat="d/MM/yyyy"
+                          onChange={(newDate) =>
+                            updateLocalDate(subject.value, momentIndex, 'date', newDate)
+                          }
+                        />*/}
+                        </td>
+                        <td key={'time-${subject.value}-${momentIndex}'}>
+                          {/*<DatePicker
+                            showTimeSelect
+                            showTimeSelectOnly
+                            minTime={new Date(0, 0, 0, 8, 0)}
+                            maxTime={new Date(0, 0, 0, 20, 0)}
+                            selected={date['time-${subject.value}-${momentIndex}'] || null}
+                            dateFormat="h:mmaa"
+                            onChange={(newDate) =>
+                              updateLocalDate(subject.value, momentIndex, 'time', newDate)
+                            }
+                          />*/}
+                          </td>
+                        <td key={'classroom-${subject.value}-${momentIndex}'}>A-101</td>
                       </>
                     ))}
                     
@@ -395,7 +484,7 @@ function Admin() {
                       <button type="button" >✔</button>
                     </td>
                   </tr>
-                ));
+                ))
               })}
             </tbody>
           </table>
@@ -403,13 +492,13 @@ function Admin() {
           <button>Submeter</button>
         </div>
         </>
-      )};
+      )}
 
-      <button id="logoff">Logoff</button>
+      <button id="logoff" onClick={handleLogoff}>Logoff</button>
 
       </div>
   </>
-  );
+  )
 }
 
 export default Admin;
