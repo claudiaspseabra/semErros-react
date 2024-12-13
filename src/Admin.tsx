@@ -127,15 +127,47 @@ function Admin() {
   const [subjectYear, setSubjectYear] = useState("");
   const [subjectStudentsEnrolled, setSubjectStudentsEnrolled] = useState("");
 
-  async function handleAddSubjectSubmit (event: React.SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function handleAddSubjectSubmit() {
     const newSubject = {
-      label: subjectName,
-      semester: subjectSemester,
-      year: subjectYear,
-      studentsEnrolled: subjectStudentsEnrolled,
-      course: selectedCourse
+      "subjectName": subjectName,
+      "courseId": selectedCourse,
+      "studentsEnrolled": subjectStudentsEnrolled,
+      "subjectYear": subjectYear,
+      "subjectEvaluationType": "Mista",
+      "subjectSemester": subjectSemester
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/app/subjects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSubject),
+      });
+
+
+      if (response.ok) {
+        alert('Curso editado com sucesso!');
+        setSubjectName('');
+        setSubjectSemester('');
+        setSubjectYear('');
+        setSubjectStudentsEnrolled('');
+      } else {
+        alert('Erro ao editar o curso!');
+      }
+    } catch (error) {
+      alert(error);
+    }
+  }
+
+  async function handleAddSubjectTestSubmit () {
+    const newSubject = {
+        "subjectName": "dasdasx",
+        "courseId": 2,
+        "studentsEnrolled": 10,
+        "subjectEvaluationType": "Mista",
+        "subjectAttendance": "sim"
     }
 
     try {
@@ -148,13 +180,9 @@ function Admin() {
       });
 
       if (response.ok) {
-        alert('Curso editado com sucesso!');
-        setSubjectName('');
-        setSubjectSemester('');
-        setSubjectYear('');
-        setSubjectStudentsEnrolled('');
+        alert('Cadeira editado com sucesso!');
       } else {
-        alert('Erro ao editar o curso!');
+        alert('Erro ao adicionar cadeira!');
       }
     } catch (error) {
       alert('Erro na comunicação com o servidor!');
@@ -296,7 +324,7 @@ function Admin() {
 
             {isAddSubjectShown && selectedCourse && (
               <div className="addSubject">
-                <Form onSubmit={handleAddSubjectSubmit}>
+                <Form>
                   <Form.Group controlId="subjectName">
                     <Form.Label>Nome</Form.Label>
                     <Form.Control
@@ -306,22 +334,23 @@ function Admin() {
                       required
                     />
                   </Form.Group>
-                  <Form.Group controlId="subjectSemester">
-                    <Form.Label>Semestre</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={subjectSemester}
-                      onChange={(e) => setSubjectSemester(e.target.value)}
-                      required
-                    />
-                  </Form.Group>
-
+                  
                   <Form.Group controlId="subjectYear">
                     <Form.Label>Ano</Form.Label>
                     <Form.Control
                       type="number"
                       value={subjectYear}
                       onChange={(e) => setSubjectYear(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+                  
+                  <Form.Group controlId="subjectSemester">
+                    <Form.Label>Semestre</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={subjectSemester}
+                      onChange={(e) => setSubjectSemester(e.target.value)}
                       required
                     />
                   </Form.Group>
@@ -335,7 +364,7 @@ function Admin() {
                       required
                     />
                   </Form.Group>
-                  <Button type="submit" disabled={!subjectName || !subjectSemester || !subjectYear || !subjectStudentsEnrolled}>Adicionar</Button>
+                  <button onClick={handleAddSubjectSubmit} type="submit" disabled={!subjectName || !subjectYear || !subjectSemester  || !subjectStudentsEnrolled}>Adicionar</button>
                   </Form>
               </div>
             )}
@@ -494,6 +523,7 @@ function Admin() {
         </>
       )}
 
+      <button onClick={handleAddSubjectTestSubmit}>Adicionar cadeira</button>
       <button id="logoff" onClick={handleLogoff}>Logoff</button>
 
       </div>
