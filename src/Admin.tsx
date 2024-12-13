@@ -16,14 +16,14 @@ function Admin() {
 
   // Fetchs
   const [courses, setCourses] = useState<{ value: number; label: string }[]>([]);
-  const [subjects, setSubjects] = useState<{ value: number; course: number; label: string }[]>([]);
+  const [subjects, setSubjects] = useState<{ value: number; course: number; year: number; semester: number; label: string }[]>([]);
 
 
   // Obter id do curso
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
 
   // Obter cadeiras do curso selecionado
-  const filteredSubjects = subjects.filter(
+  const subjectsByCourse = subjects.filter(
     (subject) => subject.course === selectedCourse
   );
 
@@ -39,12 +39,22 @@ function Admin() {
     );
   };
 
-  // Toggle button para selecionar o semestre a que o mapa vai corresponder
-  const [selectedSemester, setSelectedSemester] = useState<'1º semestre' | '2º semestre'>('1º semestre');
 
-  const toggleSemester = (semester: '1º semestre' | '2º semestre') => {
+  // Toggle button para selecionar o semestre a que o mapa vai corresponder
+  const [selectedSemester, setSelectedSemester] = useState<'1º Semestre' | '2º Semestre'>('1º Semestre');
+  const [numericSemester, setNumericSemester] = useState<number>(1);
+  
+  const toggleSemester = (semester: '1º Semestre' | '2º Semestre') => {
     setSelectedSemester(semester);
-  };
+
+    const numericValue = semester === '1º Semestre' ? 1 : 2;
+    setNumericSemester(numericValue);
+  }
+
+  // Obter cadeiras por curso e semestre
+  const subjectsByCourseSemester = selectedCourse ? subjectsByCourse.filter(
+    (subject) => subject.semester === numericSemester
+  ) : [];
 
   // Campos e submits
   const [name, setName] = useState("");
@@ -182,7 +192,7 @@ function Admin() {
               <Select
                 isMulti
                 name="subjects"
-                options={filteredSubjects}
+                options={subjectsByCourse}
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
                 onChange={handleSubjectSelect}
@@ -264,26 +274,45 @@ function Admin() {
         </div>
       )};
 
+
+
       {/* Evaluation Map */}
       {isEvalMapShown && (
         <>
+            <Select
+              name="courses"
+              options={courses}
+              closeMenuOnSelect={true}
+              hideSelectedOptions={false}
+              onChange={(selectedOption) =>
+                setSelectedCourse(selectedOption?.value || null)
+              }
+            />
+
         <div className="toggle-container">
           <button
-            className={`toggle-button ${selectedSemester === '1º semestre' ? 'active' : ''}`}
-            onClick={() => toggleSemester('1º semestre')}
+            className={`toggle-button ${selectedSemester === '1º Semestre' ? 'active' : ''}`}
+            onClick={() =>
+              toggleSemester('1º Semestre')
+             }
           > 1º Semestre</button>
 
           <button
-            className={`toggle-button ${selectedSemester === '2º semestre' ? 'active' : ''}`}
-            onClick={() => toggleSemester('2º semestre')}
+            className={`toggle-button ${selectedSemester === '2º Semestre' ? 'active' : ''}`}
+            onClick={() => 
+              toggleSemester('2º Semestre')
+            }
           > 2º Semestre</button>
         </div>
 
         <div className='evaluationMap'>
+
           <h1>Engenharia Informática</h1>
           <h2>Época normal</h2>
-          <h3>1º Semestre 2024/2025</h3>
+          <h3>{selectedSemester} 2024/2025</h3>
+
           <table className="table">
+            
             <thead>
               <tr>
                 <th colSpan={4} className="empty"></th>
@@ -300,7 +329,7 @@ function Admin() {
                 {evaluationMoments.map((index) => (
                     <>
                       <th key={`elemento-${index}`}>Elemento</th>
-                      <th key={`ponderacao-${index}`}>Ponderação/Observação</th>
+                      <th key={`ponderacao-${index}`}>Ponderação</th>
                       <th key={`data-${index}`}>Data</th>
                       <th key={`hora-${index}`}>Hora</th>
                       <th key={`sala-${index}`}>Sala</th>
@@ -309,29 +338,34 @@ function Admin() {
               </tr>
             </thead>
             <tbody>
-              
-
-            {data.map((line, index) => (
-                  <tr key={index}>
-                    <td>{line.ano}</td>
-                    {/*Adicionar conforme array ucs - verificar ano e colocar respetivamente*/}
-                    <td>{line.unidadeCurricular}</td>
+              {/*Filtrar as subjects filtradas por ano*/}
+              {[...new Set(subjectsByCourseSemester.map((subject) => subject.year))].map((year) => {
+                const subjectsInYear = subjectsByCourseSemester.filter(
+                  (subject) => subject.year === year
+                );
+                return subjectsInYear.map((subject, index) => (
+                  <tr key={subject.value}>
+                    {index === 0 && (
+                      <td rowSpan={subjectsInYear.length}>{subject.year}º Ano</td>
+                    )}
+                    <td>{subject.label}</td>
+                    {/* Assiduidade */}
                     <td>
-                      <input
-                        type="text"
+                      <input type="text"/>
+                    </td>
+                    {/* Tipo de avaliação (mista ou contínua) */}
+                    <td>
+                      <Select
+                        name="evalTypes"
+                        options={evaluationTypes}
+                        closeMenuOnSelect={true}
+                        hideSelectedOptions={false}
                       />
                     </td>
-                    <td>
-                    <Select
-                      name="evalTypes"
-                      options={evaluationTypes}
-                      closeMenuOnSelect={true}
-                      hideSelectedOptions={false}
-                    />
-                    </td>
+                    {/*Tipos de avaliações (teste, trabalho)*/}
                     {evaluationMoments.map((_, momentIndex) => (
                       <>
-                        <td key={`select-element-${index}-${momentIndex}`}>
+                        <td key={`elemento-${subject.value}-${momentIndex}`}>
                           <Select
                             name="elements"
                             options={elements}
@@ -339,24 +373,27 @@ function Admin() {
                             hideSelectedOptions={false}
                           />
                         </td>
-                        <td>{line.ponderacao}</td>
-                        <td>{line.data}</td>
-                        <td>{line.hora}</td>
-                        {/*Vai ser atribuído automaticamente*/}
-                        <td>{line.sala}</td>
+                        <td key={`ponderacao-${subject.value}-${momentIndex}`}>
+                          <input type="text"/>
+                        </td>
+                        <td key={`data-${subject.value}-${momentIndex}`}>10/06/2025</td>
+                        <td key={`hora-${subject.value}-${momentIndex}`}>14:00</td>
+                        <td key={`sala-${subject.value}-${momentIndex}`}>A-101</td>
                       </>
                     ))}
                   </tr>
-                ))}
+                ));
+              })}
             </tbody>
           </table>
         </div>
         </>
-      )}
+      )};
 
       <button id="logoff">Logoff</button>
 
-    </div>
+    
+  </div>
   </>
   );
 }
