@@ -203,35 +203,6 @@ function Admin() {
     }
   }
 
-  async function handleAddSubjectTestSubmit () {
-    const newSubject = {
-        "subjectName": "dasdasx",
-        "courseId": 2,
-        "studentsEnrolled": 10,
-        "subjectEvaluationType": "Mista",
-        "subjectAttendance": "sim"
-    }
-
-    try {
-      const response = await fetch('http://localhost:8080/app/subjects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSubject),
-      });
-
-      if (response.ok) {
-        alert('Cadeira editado com sucesso!');
-      } else {
-        alert('Erro ao adicionar cadeira!');
-      }
-    } catch (error) {
-      alert('Erro na comunicação com o servidor!');
-    }
-  }
-
-
   // Aparecer e desaparecer on button click
     // Adicionar utilizador
   const [isAddUserShown, setIsAddUserShown] = useState(false);
@@ -264,10 +235,31 @@ function Admin() {
 
     navigate('/');
   };
+
+  const [dates, setDates] = useState<{ [key: string]: { date: Date | null, time: Date | null } }>({});
+
+  const updateLocalDate = (subjectId: number, momentIndex: number, field: 'date' | 'time', newValue: Date) => {
+    setDates(prevDates => ({
+      ...prevDates,
+      [`${subjectId}-${momentIndex}`]: {
+        ...prevDates[`${subjectId}-${momentIndex}`],
+        [field]: newValue
+      }
+    }));
+  };
+
+  const handleDateChange = (subjectId: number, momentIndex: number, field: 'date' | 'time') => (newDate: Date | null) => {
+    if (newDate) {
+      updateLocalDate(subjectId, momentIndex, field, newDate);
+    }
+  };
+  
+
+  // -----------------------------------------------------------------------------------------------------------------
   
   return (
     <>
-
+      
     {/* Fetch dos cursos e das cadeiras */}
     <FetchCourses onFetchComplete={setCourses} />
     <FetchSubjects onFetchComplete={setSubjects} />
@@ -529,28 +521,23 @@ function Admin() {
                         <td key={'ponderacao-${subject.value}-${momentIndex}'}>
                           <input type="text"/>
                         </td>
-                        <td key={'date-${subject.value}-${momentIndex}'}>
-                        
-                        {/*<DatePicker
-                          selected={date['date-${subject.value}-${momentIndex}'] || null}
-                          dateFormat="d/MM/yyyy"
-                          onChange={(newDate) =>
-                            updateLocalDate(subject.value, momentIndex, 'date', newDate)
-                          }
-                        />*/}
-                        </td>
-                        <td key={'time-${subject.value}-${momentIndex}'}>
-                          {/*<DatePicker
-                            showTimeSelect
-                            showTimeSelectOnly
-                            minTime={new Date(0, 0, 0, 8, 0)}
-                            maxTime={new Date(0, 0, 0, 20, 0)}
-                            selected={date['time-${subject.value}-${momentIndex}'] || null}
-                            dateFormat="h:mmaa"
-                            onChange={(newDate) =>
-                              updateLocalDate(subject.value, momentIndex, 'time', newDate)
-                            }
-                          />*/}
+                        <td key={`date-${subject.value}-${momentIndex}`}>
+                            <DatePicker
+                              selected={dates[`${subject.value}-${momentIndex}`]?.date || null}
+                              dateFormat="d/MM/yyyy"
+                              onChange={handleDateChange(subject.value, momentIndex, 'date')}
+                            />
+                          </td>
+                          <td key={`time-${subject.value}-${momentIndex}`}>
+                            <DatePicker
+                              showTimeSelect
+                              showTimeSelectOnly
+                              minTime={new Date(0, 0, 0, 8, 0)}
+                              maxTime={new Date(0, 0, 0, 20, 0)}
+                              selected={dates[`${subject.value}-${momentIndex}`]?.time || null}
+                              dateFormat="h:mm a"
+                              onChange={handleDateChange(subject.value, momentIndex, 'time')}
+                            />
                           </td>
                         <td key={'classroom-${subject.value}-${momentIndex}'}>A-101</td>
                       </>
@@ -570,7 +557,6 @@ function Admin() {
         </>
       )}
 
-      <button onClick={handleAddSubjectTestSubmit}>Adicionar cadeira</button>
       <button id="logoff" onClick={handleLogoff}>Logoff</button>
 
       </div>
