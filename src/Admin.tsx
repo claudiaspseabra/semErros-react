@@ -325,8 +325,9 @@ function Admin() {
   const [evaluationDate, setEvaluationDate] = useState("")
   const [evaluationTime, setEvaluationTime] = useState("");
   const [evaluationWeight, setEvaluationWeight] = useState<{ [key: string]: number | null }>({});
+  const [evaluationClassrooms, setEvaluationClassrooms] = useState<Record<string, string>>({});
 
-  async function handleAddEvaluationSubmit(subject: { value: number; course: number }) {
+  async function handleAddEvaluationSubmit(subject: { value: number; course: number }, momentIndex: number) {
     const newEvaluation = {
       "evaluationType": evaluationElement,
       "courseId": subject.course,
@@ -345,6 +346,7 @@ function Admin() {
         body: JSON.stringify(newEvaluation),
       });
   
+      
       if (response.ok) {
         alert('Avaliação adicionada com sucesso!');
       } else {
@@ -654,7 +656,8 @@ function Admin() {
 
 
                       {/* Coluna de Sala de Aula */}
-                      <td key={`classroom-${subject.value}-${momentIndex}`}>A-101</td>
+                      <td>
+                      </td>
 
                       {/* Botão para exibir a Data e Hora */}
                       <td>
@@ -666,7 +669,7 @@ function Admin() {
                         Ver Data e Hora
                         </button>
                       </td>
-                      <td><button type="button" onClick={() => handleAddEvaluationSubmit(subject)}>✔</button></td>
+                      <td><button type="button" onClick={() => handleAddEvaluationSubmit(subject, momentIndex)}>✔</button></td>
                     </tr>
                     ))}
                   </>
