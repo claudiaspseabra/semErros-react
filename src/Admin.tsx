@@ -31,40 +31,11 @@ function Admin() {
     (subject) => subject.course === selectedCourse
   );
 
-  //Selecionar e apagar cadeiras
+  //Selecionar cadeiras
   const [selectedSubjects, setSelectedSubjects] = useState<{ value: number; label: string }[]>([]);
   const handleSubjectSelect = (selectedOptions: any) => {
     setSelectedSubjects(selectedOptions || []);
   };
-
-  async function handleRemoveSubject(subjectToRemove: {value: number, label: string}) {
-    const confirmDelete = window.confirm('Tem certeza que deseja remover a disciplina:' + subjectToRemove.label + '?');
-  
-    if (!confirmDelete) return;
-  
-    try {
-      const response = await fetch('http://localhost:8080/app/subjects/32', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (response.ok) {
-        setSelectedSubjects((prev) =>
-          prev.filter((subject) => subject.value !== subjectToRemove.value)
-        );
-  
-        setSubjects((prevSubjects) =>
-          prevSubjects.filter((subject) => subject.value !== subjectToRemove.value)
-        );
-  
-        alert('Unidade Curricular removida com sucesso!');
-      } else {
-        alert('Erro ao remover Unidade Curricular.');
-      }
-    } catch (error) {
-      alert('Erro na comunicação com o servidor!');
-    }
-  }
 
   // Toggle button para selecionar o semestre a que o mapa vai corresponder
   const [selectedSemester, setSelectedSemester] = useState<'1º Semestre' | '2º Semestre'>('1º Semestre');
@@ -122,12 +93,83 @@ function Admin() {
     }
   }
 
+  // Remover subject
+  async function handleRemoveSubject(subjectToRemove: {value: number, label: string}) {
+    const confirmDelete = window.confirm('Tem a certeza que deseja remover a disciplina:' + subjectToRemove.label + '?');
+  
+    if (!confirmDelete) return;
+  
+    try {
+      const response = await fetch('http://localhost:8080/app/subjects/delete/' + subjectToRemove.value, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        setSelectedSubjects((prev) =>
+          prev.filter((subject) => subject.value !== subjectToRemove.value)
+        );
+  
+        setSubjects((prevSubjects) =>
+          prevSubjects.filter((subject) => subject.value !== subjectToRemove.value)
+        );
+  
+        alert('Unidade Curricular removida com sucesso!');
+      } else {
+        alert('Erro ao remover Unidade Curricular.');
+      }
+    } catch (error) {
+      alert('Erro na comunicação com o servidor!');
+    }
+  }
+
+  const handleRemoveAllSubjects = async () => {
+    const confirmDelete = window.confirm(
+      'Tem a certeza que deseja remover todas as disciplinas selecionadas?'
+    );
+  
+    if (!confirmDelete) return;
+  
+    for (const subject of selectedSubjects) {
+      try {
+        const response = await fetch(
+          'http://localhost:8080/app/subjects/delete/' + subject.value,
+          {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+  
+        if (response.ok) {
+          setSelectedSubjects((prev) =>
+            prev.filter((s) => s.value !== subject.value)
+          );
+          setSubjects((prevSubjects) =>
+            prevSubjects.filter((s) => s.value !== subject.value)
+          );
+        } else {
+          alert('Erro ao remover Unidade Curricular: ' + subject.label);
+        }
+      } catch (error) {
+        alert('Erro na comunicação com o servidor.');
+      }
+    }
+  
+    alert('Todas as unidades curriculares foram removidas com sucesso!');
+  }
+
   const [subjectName, setSubjectName] = useState("");
   const [subjectSemester, setSubjectSemester] = useState("");
   const [subjectYear, setSubjectYear] = useState("");
   const [subjectStudentsEnrolled, setSubjectStudentsEnrolled] = useState("");
 
-  async function handleAddSubjectSubmit() {
+  function validateSubject() {
+    return subjectName.length > 0 && subjectSemester.length > 0 && subjectYear.length > 0 && subjectStudentsEnrolled.length > 0;
+  }
+
+  async function handleAddSubjectSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+
     const newSubject = {
       "subjectName": subjectName,
       "courseId": selectedCourse,
@@ -189,6 +231,7 @@ function Admin() {
     }
   }
 
+
   // Aparecer e desaparecer on button click
     // Adicionar utilizador
   const [isAddUserShown, setIsAddUserShown] = useState(false);
@@ -221,7 +264,7 @@ function Admin() {
 
     navigate('/');
   };
-
+  
   return (
     <>
 
@@ -280,17 +323,18 @@ function Admin() {
       {/* Edit course */}
       {isEditCShown && (
         <div className="editCourse">
-
-          <Form>
-            <Select
-              name="courses"
-              options={courses}
-              closeMenuOnSelect={true}
-              hideSelectedOptions={false}
-              onChange={(selectedOption) =>
-                setSelectedCourse(selectedOption?.value || null)
-              }
-            />
+          <Form onSubmit={handleAddSubjectSubmit}>
+            <Form.Group controlId="courses">
+              <Select
+                name="courses"
+                options={courses}
+                closeMenuOnSelect={true}
+                hideSelectedOptions={false}
+                onChange={(selectedOption) =>
+                  setSelectedCourse(selectedOption?.value || null)
+                }
+              />
+            </Form.Group>
 
             <Form.Group controlId="subjects">
               <Select
@@ -316,6 +360,15 @@ function Admin() {
                       </li>
                     ))}
                   </ul>
+                  {selectedSubjects.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAllSubjects}
+                      style={{ color: 'red', marginTop: '10px' }}
+                    >
+                      Remover todas as disciplinas
+                    </button>
+                  )}
                 </div>
               )}
             </Form.Group>
@@ -324,14 +377,12 @@ function Admin() {
 
             {isAddSubjectShown && selectedCourse && (
               <div className="addSubject">
-                <Form>
                   <Form.Group controlId="subjectName">
                     <Form.Label>Nome</Form.Label>
                     <Form.Control
                       type="text"
                       value={subjectName}
                       onChange={(e) => setSubjectName(e.target.value)}
-                      required
                     />
                   </Form.Group>
                   
@@ -341,7 +392,6 @@ function Admin() {
                       type="number"
                       value={subjectYear}
                       onChange={(e) => setSubjectYear(e.target.value)}
-                      required
                     />
                   </Form.Group>
                   
@@ -351,7 +401,6 @@ function Admin() {
                       type="number"
                       value={subjectSemester}
                       onChange={(e) => setSubjectSemester(e.target.value)}
-                      required
                     />
                   </Form.Group>
 
@@ -361,11 +410,9 @@ function Admin() {
                       type="number"
                       value={subjectStudentsEnrolled}
                       onChange={(e) => setSubjectStudentsEnrolled(e.target.value)}
-                      required
                     />
                   </Form.Group>
-                  <button onClick={handleAddSubjectSubmit} type="submit" disabled={!subjectName || !subjectYear || !subjectSemester  || !subjectStudentsEnrolled}>Adicionar</button>
-                  </Form>
+                  <Button type="submit" disabled={!validateSubject()}>Adicionar</Button>
               </div>
             )}
           </Form>
