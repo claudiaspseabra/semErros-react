@@ -345,6 +345,14 @@ function Admin() {
   
       
       if (response.ok) {
+        const responseData = await response.json();  // Aqui você obtém a resposta do servidor
+        const classroom = responseData.room; 
+
+        setEvaluationClassrooms((prevState) => ({
+          ...prevState,
+          [`${subject.value}-${momentIndex}`]: classroom,  // Armazenando a sala no estado
+        }));
+
         alert('Avaliação adicionada com sucesso!');
       } else {
         alert('Erro ao adicionar avaliação. Verifique as datas e as ponderações.');
@@ -354,8 +362,61 @@ function Admin() {
     }
   }
   
+  const handleButtonClick = async (subjectId: number, momentIndex: number) => {
+    try {
+      // Passo 1: Buscar todas as avaliações associadas ao subjectId
+      const response = await fetch(`http://localhost:8080/app/evaluations?subjectId=${subjectId}`);
   
-
+      if (!response.ok) {
+        throw new Error('Erro ao buscar avaliações para o subjectId');
+      }
+  
+      const evaluations = await response.json(); // Supondo que as avaliações venham em formato de array
+  
+      // Passo 2: Acessar a avaliação pela posição (momentIndex)
+      const evaluation = evaluations[momentIndex]; // Posição no array (ajustando para 0-indexed)
+  
+      if (!evaluation) {
+        alert('Avaliação não encontrada para o momento especificado');
+        return;
+      }
+  
+      const classroomId = evaluation.classroomId; // Obtendo o classroomId
+  
+      if (!classroomId) {
+        alert('Classroom ID não encontrado para esta avaliação.');
+        return;
+      }
+  
+      // Passo 3: Buscar o classroomTag correspondente ao classroomId
+      // Suponha que você tenha um array de classrooms ou faça uma requisição para obtê-lo
+      const classroomsResponse = await fetch('http://localhost:8080/app/classrooms'); // URL fictícia para buscar os classrooms
+      if (!classroomsResponse.ok) {
+        throw new Error('Erro ao buscar classrooms');
+      }
+  
+      const classrooms = await classroomsResponse.json();
+  
+      // Passo 4: Encontrar o classroomTag correspondente ao classroomId
+      const classroom = classrooms.find((classroom: any) => classroom.classroomId === classroomId);
+      
+      if (classroom) {
+        const classroomTag = classroom.tag;
+        
+        // Atualiza o estado com o classroomTag
+        setEvaluationClassrooms((prev) => ({
+          ...prev,
+          [`${subjectId}-${momentIndex}`]: classroomTag, // Atualiza com o classroomTag
+        }));
+      } else {
+        alert('Classroom não encontrado.');
+      }
+  
+    } catch (error) {
+      alert(`Erro: ${error}`);
+    }
+  }  
+  
   // -----------------------------------------------------------------------------------------------------------------
   
   return (
@@ -651,7 +712,18 @@ function Admin() {
 
 
                       {/* Coluna de Sala de Aula */}
+                      <td key={`room-${subject.value}-${momentIndex}`}>
+                        {evaluationClassrooms[`${subject.value}-${momentIndex}`] || "Sala não definida"}
+                      </td>
+
+                      {/* Botão para carregar a sala */}
                       <td>
+                        <button
+                          type="button"
+                          onClick={() => handleButtonClick(subject.value, momentIndex)} // Passando os parâmetros corretos
+                        >
+                        Carregar Sala
+                        </button>
                       </td>
 
                       {/* Botão para exibir a Data e Hora */}
