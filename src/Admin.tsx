@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import Form from 'react-bootstrap/Form';
 import Button from "react-bootstrap/Button";
 import DatePicker from 'react-datepicker';
-import { format } from 'date-fns';
 
 import { default as Select } from "react-select";
 
@@ -325,20 +324,18 @@ function Admin() {
   const [evaluationElement, setEvaluationElement] = useState("");
   const [evaluationDate, setEvaluationDate] = useState("")
   const [evaluationTime, setEvaluationTime] = useState("");
-  const [evaluationWeight, setEvaluationWeight] = useState<{ [subjectId: number]: { [momentIndex: number]: number | undefined } }>({});
+  const [evaluationWeight, setEvaluationWeight] = useState<{ [key: string]: number | null }>({});
 
   async function handleAddEvaluationSubmit(subject: { value: number; course: number }) {
     const newEvaluation = {
       "evaluationType": evaluationElement,
       "courseId": subject.course,
-      "evaluationWeight": evaluationWeight,
+      "evaluationWeight": 30,
       "evaluationDate": evaluationDate,
       "evaluationHour": evaluationTime,
       "subjectId": subject.value,
     };
-  
-    alert(newEvaluation);
-  
+    
     try {
       const response = await fetch('http://localhost:8080/app/evaluations', {
         method: 'POST',
@@ -351,8 +348,7 @@ function Admin() {
       if (response.ok) {
         alert('Avaliação adicionada com sucesso!');
       } else {
-        const errorMessage = await response.text();
-        alert('Erro ao adicionar avaliação: ' + errorMessage);
+        alert('Erro ao adicionar avaliação. Verifique as datas e as ponderações.');
       }
     } catch (error) {
       alert('Erro na comunicação com o servidor: ' + error);
@@ -630,24 +626,21 @@ function Admin() {
                           onChange={(selectedOption => setEvaluationElement(selectedOption ? selectedOption.value : ''))}
                         />
                       </td>
+
                       {/* Coluna de Ponderação */}
                       <td key={`ponderacao-${subject.value}-${momentIndex}`}>
-                      <input
-                        type="number"
-                        value={evaluationWeight[subject.value]?.[momentIndex] || ""}
-                        onChange={(e) => {
-                          const number = e.target.value ? parseFloat(e.target.value) : undefined;
-                      
-                          setEvaluationWeight(prevState => ({
-                            ...prevState,
-                            [subject.value]: {
-                              ...prevState[subject.value],
-                              [momentIndex]: number
-                            }
-                          }));
-                        }}
-                      />
+                        <input
+                          type="number"
+                          value={evaluationWeight[`${subject.value}-${momentIndex}`] || ""}
+                          onChange={(e) => {
+                            setEvaluationWeight((prevState) => ({
+                              ...prevState,
+                              [`${subject.value}-${momentIndex}`]: parseInt(e.target.value)
+                            }));
+                          }}
+                        />
                       </td>
+
                       <td key={`date-time-${subject.value}-${momentIndex}`}>
                         <DatePicker
                           selected={localDateTime[`${subject.value}-${momentIndex}`] || null}

@@ -66,6 +66,12 @@
   box-sizing: border-box;
 }
 
+.table tbody td input[type="number"] {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
 .table tbody td select,
 .table tbody td .react-datepicker__input {
   width: 100%;
