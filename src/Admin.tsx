@@ -269,9 +269,6 @@ function Admin() {
     }
   }
 
-  // ------------------- Daqui para baixo não tá certo - parte de adicionar evaluation ---------------------------------
-
-
   const [localDate, setLocalDate] = useState<{ [key: string]: Date | null }>({});
   const [localTime, setLocalTime] = useState<{ [key: string]: Date | null }>({});
   const [localDateTime, setLocalDateTime] = useState<{ [key: string]: Date | null }>({});
@@ -331,7 +328,7 @@ function Admin() {
     const newEvaluation = {
       "evaluationType": evaluationElement,
       "courseId": subject.course,
-      "evaluationWeight": 30,
+      "evaluationWeight": evaluationWeight[`${subject.value}-${momentIndex}`] || 0,
       "evaluationDate": evaluationDate,
       "evaluationHour": evaluationTime,
       "subjectId": subject.value,
@@ -613,8 +610,6 @@ function Admin() {
                   </td>
                   </tr>
 
-{/* ------------------ Falta meter a funcionar certo daqui para baixo --------------------------------------------*/}
-
                   {/* Mapeamento dos momentos de avaliação */}
                   {evaluationMoments.map((_, momentIndex) => (
                     <tr key={`moment-${subject.value}-${momentIndex}`}>
@@ -631,16 +626,16 @@ function Admin() {
 
                       {/* Coluna de Ponderação */}
                       <td key={`ponderacao-${subject.value}-${momentIndex}`}>
-                        <input
-                          type="number"
-                          value={evaluationWeight[`${subject.value}-${momentIndex}`] || ""}
-                          onChange={(e) => {
-                            setEvaluationWeight((prevState) => ({
-                              ...prevState,
-                              [`${subject.value}-${momentIndex}`]: parseInt(e.target.value)
-                            }));
-                          }}
-                        />
+                      <input
+                        type="number"
+                        value={evaluationWeight[`${subject.value}-${momentIndex}`] || ""}
+                        onChange={(e) => {
+                          setEvaluationWeight((prevState) => ({
+                            ...prevState,
+                            [`${subject.value}-${momentIndex}`]: parseInt(e.target.value) || null, // Garantir que o valor seja null se não for válido
+                          }));
+                        }}
+                      />
                       </td>
 
                       <td key={`date-time-${subject.value}-${momentIndex}`}>
