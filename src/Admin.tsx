@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import Form from 'react-bootstrap/Form';
 import Button from "react-bootstrap/Button";
 import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
 
 import { default as Select } from "react-select";
 
@@ -272,68 +273,71 @@ function Admin() {
   // ------------------- Daqui para baixo não tá certo - parte de adicionar evaluation ---------------------------------
 
 
-  // Tratar de data e hora
-  const [date, setDate] = useState<{ [key: string]: Date | null }>({});
-  const [time, setTime] = useState<{ [key: string]: Date | null }>({});
+  const [localDate, setLocalDate] = useState<{ [key: string]: Date | null }>({});
+  const [localTime, setLocalTime] = useState<{ [key: string]: Date | null }>({});
+  const [localDateTime, setLocalDateTime] = useState<{ [key: string]: Date | null }>({});
 
-  const updateLocalDate = (subjectId: number, momentIndex: number, field: 'date' | 'time', newValue: Date | null) => {
-    if (field === 'date') {
-      setDate((prevDates) => ({
+  // Função para atualizar data e hora separadamente
+  const updateLocalData = (subjectId: number, momentIndex: number, newValue: Date | null) => {
+    const key = `${subjectId}-${momentIndex}`;
+
+    if (newValue) {
+      setLocalDateTime(prevDates => ({
         ...prevDates,
-        [subjectId]: {
-          ...prevDates[subjectId],
-          [momentIndex]: newValue,
-        },
+        [key]: newValue,
       }));
-    } else if (field === 'time') {
-      setTime((prevDates) => ({
+
+      const dateOnly = new Date(newValue);
+      dateOnly.setHours(0, 0, 0, 0);
+      setLocalDate(prevDates => ({
         ...prevDates,
-        [subjectId]: {
-          ...prevDates[subjectId],
-          [momentIndex]: newValue,
-        },
+        [key]: dateOnly,
+      }));
+
+      const timeOnly = new Date(newValue);
+      timeOnly.setFullYear(1970, 0, 1);
+      setLocalTime(prevTimes => ({
+        ...prevTimes,
+        [key]: timeOnly,
       }));
     }
   };
 
-  const handleDateChange = (subjectId: number, momentIndex: number) => (newDate: Date | null) => {
-    if (newDate) {
-      updateLocalDate(subjectId, momentIndex, 'date', newDate);
+  const handleDateChange = (subjectId: number, momentIndex: number) => (newValue: Date | null) => {
+    if (newValue) {
+      updateLocalData(subjectId, momentIndex, newValue);
+  
+      setEvaluationDate(formatDate(newValue)); // YYYY-MM-DD
+      setEvaluationTime(formatTime(newValue)); // HH:mm:ss
     }
+  };
+
+  const formatDate = (date: Date | null): string => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
   };
   
-  const handleTimeChange = (subjectId: number, momentIndex: number) => (newTime: Date | null) => {
-    if (newTime) {
-      updateLocalDate(subjectId, momentIndex, 'time', newTime);
-    }
+  const formatTime = (date: Date | null): string => {
+    if (!date) return '';
+    return date.toISOString().split('T')[1].split('.')[0]; // Formato HH:mm:ss
   };
-  
 
   const [evaluationElement, setEvaluationElement] = useState("");
-  const [evaluationDate, setEvaluationDate] = useState("");
+  const [evaluationDate, setEvaluationDate] = useState("")
   const [evaluationTime, setEvaluationTime] = useState("");
-  const [evaluationWeight, setEvaluationWeight] = useState<{ [subjectId: number]: { [momentIndex: number]: string } }>({});
-  const [evaluationClassroom, setEvaluationClassroom] = useState("");
-  const [evaluationStatus, setEvaluationStatus] = useState({});
+  const [evaluationWeight, setEvaluationWeight] = useState<{ [subjectId: number]: { [momentIndex: number]: number | undefined } }>({});
 
-  async function handleAddEvaluationSubmit(subject: {value: number; course: number}) {
-    
-    if (!evaluationElement || !evaluationWeight) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
-      return;
-    }
-  
+  async function handleAddEvaluationSubmit(subject: { value: number; course: number }) {
     const newEvaluation = {
       "evaluationType": evaluationElement,
       "courseId": subject.course,
       "evaluationWeight": evaluationWeight,
-      "evaluationDate": date,
+      "evaluationDate": evaluationDate,
+      "evaluationHour": evaluationTime,
       "subjectId": subject.value,
-      "classroomId": evaluationClassroom
     };
   
-    // Log para verificar os dados enviados
-    console.log('Enviando avaliação:', newEvaluation);
+    alert(newEvaluation);
   
     try {
       const response = await fetch('http://localhost:8080/app/evaluations', {
@@ -353,7 +357,8 @@ function Admin() {
     } catch (error) {
       alert('Erro na comunicação com o servidor: ' + error);
     }
-  };
+  }
+  
   
 
   // -----------------------------------------------------------------------------------------------------------------
@@ -563,7 +568,6 @@ function Admin() {
                 <th>Elemento</th>
                 <th>Ponderação</th>
                 <th>Data</th>
-                <th>Hora</th>
                 <th>Sala</th>
               </tr>
             </thead>
@@ -629,44 +633,46 @@ function Admin() {
                       {/* Coluna de Ponderação */}
                       <td key={`ponderacao-${subject.value}-${momentIndex}`}>
                       <input
-                        type="text"
+                        type="number"
                         value={evaluationWeight[subject.value]?.[momentIndex] || ""}
                         onChange={(e) => {
-                          setEvaluationWeight({
-                            ...evaluationWeight,
+                          const number = e.target.value ? parseFloat(e.target.value) : undefined;
+                      
+                          setEvaluationWeight(prevState => ({
+                            ...prevState,
                             [subject.value]: {
-                              ...evaluationWeight[subject.value],
-                              [momentIndex]: e.target.value,
-                            },
-                          });
+                              ...prevState[subject.value],
+                              [momentIndex]: number
+                            }
+                          }));
                         }}
                       />
                       </td>
-                      {/* Coluna de Data */}
-                      <td key={`date-${subject.value}-${momentIndex}`}>
-                      <DatePicker
-                        selected={date[`${subject.value}-${momentIndex}`] || null}
-                        dateFormat="yyyy/MM/d"
-                        onChange={handleDateChange(subject.value, momentIndex)}
-                      />
-                    </td>
-                      {/* Coluna de Hora */}
-                      <td key={`time-${subject.value}-${momentIndex}`}>
+                      <td key={`date-time-${subject.value}-${momentIndex}`}>
                         <DatePicker
+                          selected={localDateTime[`${subject.value}-${momentIndex}`] || null}
+                          dateFormat="d/MM/yyyy HH:mm:ss"
+                          onChange={handleDateChange(subject.value, momentIndex)}
                           showTimeSelect
-                          showTimeSelectOnly
-                          minTime={new Date(0, 0, 0, 8, 0)}
-                          maxTime={new Date(0, 0, 0, 20, 0)}
-                          selected={time[`${subject.value}-${momentIndex}`] || null}
-                          dateFormat="h:mm a"
-                          onChange={handleTimeChange(subject.value, momentIndex)}
+                          timeFormat="HH:mm:ss"
+                          timeIntervals={30}
                         />
                       </td>
+
+
                       {/* Coluna de Sala de Aula */}
                       <td key={`classroom-${subject.value}-${momentIndex}`}>A-101</td>
-                      <button onClick={() => alert(`Data: ${date[`${subject.value}-${momentIndex}`]}, Hora: ${time[`${subject.value}-${momentIndex}`]}`)}>
+
+                      {/* Botão para exibir a Data e Hora */}
+                      <td>
+                      <button 
+                        onClick={() => {
+                          alert(`Data: ${formatDate(localDate[`${subject.value}-${momentIndex}`])}`);
+                          alert(`Hora: ${formatTime(localTime[`${subject.value}-${momentIndex}`])}`);
+                        }}>                          
                         Ver Data e Hora
-                      </button>
+                        </button>
+                      </td>
                       <td><button type="button" onClick={() => handleAddEvaluationSubmit(subject)}>✔</button></td>
                     </tr>
                     ))}
