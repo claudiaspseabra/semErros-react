@@ -100,7 +100,7 @@ function Admin() {
     if (!confirmDelete) return;
   
     try {
-      const response = await fetch('http://localhost:8080/app/subjects/delete/' + subjectToRemove.value, {
+      const response = await fetch('http://localhost:8080/app/subjects/' + subjectToRemove.value, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -236,21 +236,122 @@ function Admin() {
     navigate('/');
   };
 
-  const [dates, setDates] = useState<{ [key: string]: { date: Date | null, time: Date | null } }>({});
+  // Update attendance e evaluationType do subject
+  const [subjectAttendance, setSubjectAttendance] = useState<{ [key: number]: string }>({});
+  const [subjectEvaluationType, setSubjectEvaluationType] = useState<{ [key: number]: string }>({});
 
-  const updateLocalDate = (subjectId: number, momentIndex: number, field: 'date' | 'time', newValue: Date) => {
-    setDates(prevDates => ({
-      ...prevDates,
-      [`${subjectId}-${momentIndex}`]: {
-        ...prevDates[`${subjectId}-${momentIndex}`],
-        [field]: newValue
-      }
-    }));
+  async function handleUpdateAllSubjects(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+  
+    const subjectsToUpdate = subjectsByCourseSemester;
+  
+    try {
+      for (const subject of subjectsToUpdate) {
+        const updatedSubject = {
+          "subjectAttendance": subjectAttendance[subject.value],
+          "subjectEvaluationType": subjectEvaluationType[subject.value],
+        }
+  
+        const response = await fetch('http://localhost:8080/app/subjects/' + subject.value, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedSubject),
+        });
+  
+        if (!response.ok) {
+          alert('Erro ao atualizar a disciplina ' + subject.label);
+        }
+      }  
+    } catch (error) {
+      alert('Erro na comunicação com o servidor.');
+    }
+  }
+
+  // ------------------- Daqui para baixo não tá certo - parte de adicionar evaluation ---------------------------------
+
+
+  // Tratar de data e hora
+  const [date, setDate] = useState<{ [key: string]: Date | null }>({});
+  const [time, setTime] = useState<{ [key: string]: Date | null }>({});
+
+  const updateLocalDate = (subjectId: number, momentIndex: number, field: 'date' | 'time', newValue: Date | null) => {
+    if (field === 'date') {
+      setDate((prevDates) => ({
+        ...prevDates,
+        [subjectId]: {
+          ...prevDates[subjectId],
+          [momentIndex]: newValue,
+        },
+      }));
+    } else if (field === 'time') {
+      setTime((prevDates) => ({
+        ...prevDates,
+        [subjectId]: {
+          ...prevDates[subjectId],
+          [momentIndex]: newValue,
+        },
+      }));
+    }
   };
 
-  const handleDateChange = (subjectId: number, momentIndex: number, field: 'date' | 'time') => (newDate: Date | null) => {
+  const handleDateChange = (subjectId: number, momentIndex: number) => (newDate: Date | null) => {
     if (newDate) {
-      updateLocalDate(subjectId, momentIndex, field, newDate);
+      updateLocalDate(subjectId, momentIndex, 'date', newDate);
+    }
+  };
+  
+  const handleTimeChange = (subjectId: number, momentIndex: number) => (newTime: Date | null) => {
+    if (newTime) {
+      updateLocalDate(subjectId, momentIndex, 'time', newTime);
+    }
+  };
+  
+
+  const [evaluationElement, setEvaluationElement] = useState("");
+  const [evaluationDate, setEvaluationDate] = useState("");
+  const [evaluationTime, setEvaluationTime] = useState("");
+  const [evaluationWeight, setEvaluationWeight] = useState<{ [subjectId: number]: { [momentIndex: number]: string } }>({});
+  const [evaluationClassroom, setEvaluationClassroom] = useState("");
+  const [evaluationStatus, setEvaluationStatus] = useState({});
+
+  async function handleAddEvaluationSubmit(subject: {value: number; course: number}) {
+    
+    if (!evaluationElement || !evaluationWeight) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+  
+    const newEvaluation = {
+      "evaluationType": evaluationElement,
+      "courseId": subject.course,
+      "evaluationWeight": evaluationWeight,
+      "evaluationDate": date,
+      "subjectId": subject.value,
+      "classroomId": evaluationClassroom
+    };
+  
+    // Log para verificar os dados enviados
+    console.log('Enviando avaliação:', newEvaluation);
+  
+    try {
+      const response = await fetch('http://localhost:8080/app/evaluations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newEvaluation),
+      });
+  
+      if (response.ok) {
+        alert('Avaliação adicionada com sucesso!');
+      } else {
+        const errorMessage = await response.text();
+        alert('Erro ao adicionar avaliação: ' + errorMessage);
+      }
+    } catch (error) {
+      alert('Erro na comunicação com o servidor: ' + error);
     }
   };
   
@@ -412,42 +513,40 @@ function Admin() {
       )}
 
 
-
       {/* Evaluation Map */}
       {isEvalMapShown && (
         <>
-        {/*Escolher curso para a tabela*/}
-        <Select
-          name="courses"
-          options={courses}
-          closeMenuOnSelect={true}
-          hideSelectedOptions={false}
-          onChange={(selectedOption) => 
-            {
-            setSelectedCourse(selectedOption?.value || null)
-            setSelectedCourseLabel(selectedOption?.label || null)
-            }
-          }
-        />
-
-        {/*Escolher semestre para a tabela*/}
-        <div className="toggle-container">
-        <button
-            className={`toggle-button ${selectedSemester === '1º Semestre' ? 'active' : ''}`}
-            onClick={() =>
-              toggleSemester('1º Semestre')
-             }
-          > 1º Semestre</button>
-
-        <button
-            className={`toggle-button ${selectedSemester === '2º Semestre' ? 'active' : ''}`}
-            onClick={() =>
-              toggleSemester('2º Semestre')
-             }
-          > 2º Semestre</button>
-        </div>
-
         <div className='evaluationMap'>
+          {/*Escolher curso para a tabela*/}
+          <Select
+            name="courses"
+            options={courses}
+            closeMenuOnSelect={true}
+            hideSelectedOptions={false}
+            onChange={(selectedOption) => 
+              {
+              setSelectedCourse(selectedOption?.value || null)
+              setSelectedCourseLabel(selectedOption?.label || null)
+              }
+            }
+          />
+
+          {/*Escolher semestre para a tabela*/}
+          <div className="toggle-container">
+          <button
+              className={`toggle-button ${selectedSemester === '1º Semestre' ? 'active' : ''}`}
+              onClick={() =>
+                toggleSemester('1º Semestre')
+              }
+            > 1º Semestre</button>
+
+          <button
+              className={`toggle-button ${selectedSemester === '2º Semestre' ? 'active' : ''}`}
+              onClick={() =>
+                toggleSemester('2º Semestre')
+              }
+            > 2º Semestre</button>
+          </div>
 
           <h1>{selectedCourseLabel}</h1>
           <h2>Época normal</h2>
@@ -482,8 +581,16 @@ function Admin() {
                   <td rowSpan={evaluationMoments.length + 1}>{subject.label}</td>
 
                   {/* Assiduidade */}
-                  <td rowSpan={evaluationMoments.length  + 1}>
-                    <input type="text"/>
+                  <td key={subject.value} rowSpan={evaluationMoments.length  + 1}>
+                    <input type="text"          
+                      value={subjectAttendance[subject.value] || ""}
+                      onChange={(e) => {
+                        setSubjectAttendance({
+                          ...subjectAttendance,
+                          [subject.value]: e.target.value,
+                        });
+                      }}
+                    />
                   </td>
 
                   {/* Tipo de avaliação (mista ou contínua) */}
@@ -493,9 +600,18 @@ function Admin() {
                       options={evaluationTypes}
                       closeMenuOnSelect={true}
                       hideSelectedOptions={false}
+                      value={evaluationTypes.find(option => option.value === subjectEvaluationType[subject.value])}
+                      onChange={(selectedOption) => {
+                        setSubjectEvaluationType(prevState => ({
+                          ...prevState,
+                          [subject.value]: selectedOption ? selectedOption.value : ''                       
+                        }));
+                      }}
                     />
                   </td>
                   </tr>
+
+{/* ------------------ Falta meter a funcionar certo daqui para baixo --------------------------------------------*/}
 
                   {/* Mapeamento dos momentos de avaliação */}
                   {evaluationMoments.map((_, momentIndex) => (
@@ -507,20 +623,33 @@ function Admin() {
                           options={elements}
                           closeMenuOnSelect={true}
                           hideSelectedOptions={false}
+                          onChange={(selectedOption => setEvaluationElement(selectedOption ? selectedOption.value : ''))}
                         />
                       </td>
                       {/* Coluna de Ponderação */}
                       <td key={`ponderacao-${subject.value}-${momentIndex}`}>
-                        <input type="text"/>
+                      <input
+                        type="text"
+                        value={evaluationWeight[subject.value]?.[momentIndex] || ""}
+                        onChange={(e) => {
+                          setEvaluationWeight({
+                            ...evaluationWeight,
+                            [subject.value]: {
+                              ...evaluationWeight[subject.value],
+                              [momentIndex]: e.target.value,
+                            },
+                          });
+                        }}
+                      />
                       </td>
                       {/* Coluna de Data */}
                       <td key={`date-${subject.value}-${momentIndex}`}>
-                        <DatePicker
-                          selected={dates[`${subject.value}-${momentIndex}`]?.date || null}
-                          dateFormat="d/MM/yyyy"
-                          onChange={handleDateChange(subject.value, momentIndex, 'date')}
-                        />
-                      </td>
+                      <DatePicker
+                        selected={date[`${subject.value}-${momentIndex}`] || null}
+                        dateFormat="yyyy/MM/d"
+                        onChange={handleDateChange(subject.value, momentIndex)}
+                      />
+                    </td>
                       {/* Coluna de Hora */}
                       <td key={`time-${subject.value}-${momentIndex}`}>
                         <DatePicker
@@ -528,15 +657,17 @@ function Admin() {
                           showTimeSelectOnly
                           minTime={new Date(0, 0, 0, 8, 0)}
                           maxTime={new Date(0, 0, 0, 20, 0)}
-                          selected={dates[`${subject.value}-${momentIndex}`]?.time || null}
+                          selected={time[`${subject.value}-${momentIndex}`] || null}
                           dateFormat="h:mm a"
-                          onChange={handleDateChange(subject.value, momentIndex, 'time')}
+                          onChange={handleTimeChange(subject.value, momentIndex)}
                         />
                       </td>
                       {/* Coluna de Sala de Aula */}
                       <td key={`classroom-${subject.value}-${momentIndex}`}>A-101</td>
-
-                      <td><button type="button">✔</button></td>
+                      <button onClick={() => alert(`Data: ${date[`${subject.value}-${momentIndex}`]}, Hora: ${time[`${subject.value}-${momentIndex}`]}`)}>
+                        Ver Data e Hora
+                      </button>
+                      <td><button type="button" onClick={() => handleAddEvaluationSubmit(subject)}>✔</button></td>
                     </tr>
                     ))}
                   </>
@@ -545,7 +676,9 @@ function Admin() {
             </tbody>
           </table>
 
-          <button>Submeter</button>
+          <Form onSubmit={handleUpdateAllSubjects}>
+            <button type="submit">Submeter</button>
+          </Form>       
         </div>
         </>
       )}

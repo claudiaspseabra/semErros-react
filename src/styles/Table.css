@@ -5,6 +5,9 @@
   color: #333;
   background-color: #f0f4f7;
 
+  text-align: center;
+  vertical-align: middle;
+  
   text-wrap: pretty;
   table-layout: fixed;
 }

@@ -1,6 +1,6 @@
 export const evaluationTypes = [
-    {value: "contínua", label: "Contínua"},
-    {value: "mista", label: "Mista"}
+    {value: "Contínua", label: "Contínua"},
+    {value: "Mista", label: "Mista"}
 ]
 
 
