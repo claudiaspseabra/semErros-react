@@ -10,7 +10,7 @@ import DatePicker from 'react-datepicker';
 
 import { default as Select } from "react-select";
 
-import { evaluationTypes, evaluationMoments, elements } from './TableData.tsx'
+import { evaluationTypes, evaluationMoments, elements } from './Data.tsx'
 
 import FetchCourses from './Fetch/FetchCourses.tsx';
 import FetchSubjects from './Fetch/FetchSubjects.tsx';
@@ -457,97 +457,90 @@ function Admin() {
             
             <thead>
               <tr>
-                <th colSpan={4} className="empty"></th>
-                {evaluationMoments.map((m, index) => (
-                    <th key={index} colSpan={5}>{m.moment}</th>
-                  ))}
-              </tr>
-              <tr>
                 <th>Ano</th>
                 <th>Unidade Curricular</th>
-                <th>Assiduidade Obrigatória (S/N)</th>
-                <th>Tipo de avaliação</th>
-
-                {evaluationMoments.map(() => (
-                    <>
-                      <th key={'element-${index}'}>Elemento</th>
-                      <th key={'ponderacao-${index}'}>Ponderação</th>
-                      <th key={'date-${index}'}>Data</th>
-                      <th key={'time-${index}'}>Hora</th>
-                      <th key={'classroom-${index}'}>Sala</th>
-                    </>
-                  ))}
+                <th>Assiduidade (S/N)</th>
+                <th>Tipo de Avaliação</th>
+                <th>Elemento</th>
+                <th>Ponderação</th>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Sala</th>
               </tr>
             </thead>
             <tbody>
-              {/*Filtrar as subjects filtradas por ano*/}
+              {/* Filtrar as subjects filtradas por ano */}
               {[...new Set(subjectsByCourseSemester.map((subject) => subject.year))].map((year) => {
-                const subjectsInYear = subjectsByCourseSemester.filter(
-                  (subject) => subject.year === year
-                )
+                const subjectsInYear = subjectsByCourseSemester.filter((subject) => subject.year === year);
+                
                 return subjectsInYear.map((subject, index) => (
-                  <tr key={subject.value}>
-                    {index === 0 && (
-                      <td rowSpan={subjectsInYear.length}>{subject.year}º Ano</td>
-                    )}
-                    <td>{subject.label}</td>
+                <>
+                <tr key={subject.value}>
+                  {index === 0 && (
+                    <td rowSpan={25}>{subject.year}º Ano</td>
+                  )}
+                  <td rowSpan={evaluationMoments.length + 1}>{subject.label}</td>
 
-                    {/*Não sei se daqui para baixo não terá de ser um form*/}
+                  {/* Assiduidade */}
+                  <td rowSpan={evaluationMoments.length  + 1}>
+                    <input type="text"/>
+                  </td>
 
-                    {/* Assiduidade */}
-                    <td>
-                      <input type="text"/>
-                    </td>
-                    {/* Tipo de avaliação (mista ou contínua) */}
-                    <td>
-                      <Select
-                        name="evalTypes"
-                        options={evaluationTypes}
-                        closeMenuOnSelect={true}
-                        hideSelectedOptions={false}
-                      />
-                    </td>
-                    {/*Tipos de avaliações (teste, trabalho)*/}
-                    {evaluationMoments.map((_, momentIndex) => (
-                      <>
-                        <td key={'element-${subject.value}-${momentIndex}'}>
-                          <Select
-                            name="elements"
-                            options={elements}
-                            closeMenuOnSelect={true}
-                            hideSelectedOptions={false}
-                          />
-                        </td>
-                        <td key={'ponderacao-${subject.value}-${momentIndex}'}>
-                          <input type="text"/>
-                        </td>
-                        <td key={`date-${subject.value}-${momentIndex}`}>
-                            <DatePicker
-                              selected={dates[`${subject.value}-${momentIndex}`]?.date || null}
-                              dateFormat="d/MM/yyyy"
-                              onChange={handleDateChange(subject.value, momentIndex, 'date')}
-                            />
-                          </td>
-                          <td key={`time-${subject.value}-${momentIndex}`}>
-                            <DatePicker
-                              showTimeSelect
-                              showTimeSelectOnly
-                              minTime={new Date(0, 0, 0, 8, 0)}
-                              maxTime={new Date(0, 0, 0, 20, 0)}
-                              selected={dates[`${subject.value}-${momentIndex}`]?.time || null}
-                              dateFormat="h:mm a"
-                              onChange={handleDateChange(subject.value, momentIndex, 'time')}
-                            />
-                          </td>
-                        <td key={'classroom-${subject.value}-${momentIndex}'}>A-101</td>
-                      </>
-                    ))}
-                    
-                    <td>
-                      <button type="button" >✔</button>
-                    </td>
+                  {/* Tipo de avaliação (mista ou contínua) */}
+                  <td rowSpan={evaluationMoments.length  + 1}>
+                    <Select
+                      name="evalTypes"
+                      options={evaluationTypes}
+                      closeMenuOnSelect={true}
+                      hideSelectedOptions={false}
+                    />
+                  </td>
                   </tr>
-                ))
+
+                  {/* Mapeamento dos momentos de avaliação */}
+                  {evaluationMoments.map((_, momentIndex) => (
+                    <tr key={`moment-${subject.value}-${momentIndex}`}>
+                      {/* Coluna de Elementos */}
+                      <td key={`element-${subject.value}-${momentIndex}`}>
+                        <Select
+                          name="elements"
+                          options={elements}
+                          closeMenuOnSelect={true}
+                          hideSelectedOptions={false}
+                        />
+                      </td>
+                      {/* Coluna de Ponderação */}
+                      <td key={`ponderacao-${subject.value}-${momentIndex}`}>
+                        <input type="text"/>
+                      </td>
+                      {/* Coluna de Data */}
+                      <td key={`date-${subject.value}-${momentIndex}`}>
+                        <DatePicker
+                          selected={dates[`${subject.value}-${momentIndex}`]?.date || null}
+                          dateFormat="d/MM/yyyy"
+                          onChange={handleDateChange(subject.value, momentIndex, 'date')}
+                        />
+                      </td>
+                      {/* Coluna de Hora */}
+                      <td key={`time-${subject.value}-${momentIndex}`}>
+                        <DatePicker
+                          showTimeSelect
+                          showTimeSelectOnly
+                          minTime={new Date(0, 0, 0, 8, 0)}
+                          maxTime={new Date(0, 0, 0, 20, 0)}
+                          selected={dates[`${subject.value}-${momentIndex}`]?.time || null}
+                          dateFormat="h:mm a"
+                          onChange={handleDateChange(subject.value, momentIndex, 'time')}
+                        />
+                      </td>
+                      {/* Coluna de Sala de Aula */}
+                      <td key={`classroom-${subject.value}-${momentIndex}`}>A-101</td>
+
+                      <td><button type="button">✔</button></td>
+                    </tr>
+                    ))}
+                  </>
+                ));
               })}
             </tbody>
           </table>
