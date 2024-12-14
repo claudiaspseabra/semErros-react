@@ -10,10 +10,10 @@ import DatePicker from 'react-datepicker';
 
 import { default as Select } from "react-select";
 
-import { evaluationTypes, evaluationMoments, elements } from './Data.tsx'
+import { evaluationTypes, evaluationMoments, elements } from './TableData.tsx'
 
-import FetchCourses from './FetchCourses.tsx';
-import FetchSubjects from './FetchSubjects.tsx';
+import FetchCourses from './Fetch/FetchCourses.tsx';
+import FetchSubjects from './Fetch/FetchSubjects.tsx';
 
 function Admin() {
 
