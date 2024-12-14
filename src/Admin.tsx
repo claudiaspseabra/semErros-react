@@ -123,6 +123,7 @@ function Admin() {
     }
   }
 
+  // Remover vários subjects
   const handleRemoveAllSubjects = async () => {
     const confirmDelete = window.confirm(
       'Tem a certeza que deseja remover todas as disciplinas selecionadas?'
@@ -167,6 +168,7 @@ function Admin() {
     return subjectName.length > 0 && subjectSemester.length > 0 && subjectYear.length > 0 && subjectStudentsEnrolled.length > 0;
   }
 
+  // Adicionar subject
   async function handleAddSubjectSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -228,18 +230,10 @@ function Admin() {
     setIsEvalMapShown(current => !current);
   }
 
-  //Logoff
-  const navigate = useNavigate();
-  const handleLogoff = () => {
-    localStorage.removeItem('user');
-
-    navigate('/');
-  };
-
-  // Update attendance e evaluationType do subject
   const [subjectAttendance, setSubjectAttendance] = useState<{ [key: number]: string }>({});
   const [subjectEvaluationType, setSubjectEvaluationType] = useState<{ [key: number]: string }>({});
 
+  // Update attendance e evaluation type de subjects
   async function handleUpdateAllSubjects(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
   
@@ -324,6 +318,7 @@ function Admin() {
   const [evaluationWeight, setEvaluationWeight] = useState<{ [key: string]: number | null }>({});
   const [evaluationClassrooms, setEvaluationClassrooms] = useState<Record<string, string>>({});
 
+  // Adicionar evaluations
   async function handleAddEvaluationSubmit(subject: { value: number; course: number }, momentIndex: number) {
     const newEvaluation = {
       "evaluationType": evaluationElement,
@@ -354,7 +349,8 @@ function Admin() {
     }
   }
   
-  const handleButtonClick = async (subjectId: number, momentIndex: number) => {
+  // Load sala da evaluation
+  const handleLoadClassroomClick = async (subjectId: number, momentIndex: number) => {
     try {
       const response = await fetch(`http://localhost:8080/app/evaluations?subjectId=${subjectId}`);
   
@@ -402,8 +398,16 @@ function Admin() {
       alert(`Erro: ${error}`);
     }
   }  
+
+  //Logoff
+  const navigate = useNavigate();
+  const handleLogoff = () => {
+    localStorage.removeItem('user');
+
+    navigate('/');
+  };
   
-  // -----------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------
   
   return (
     <>
@@ -706,20 +710,9 @@ function Admin() {
                       <td>
                         <button
                           type="button"
-                          onClick={() => handleButtonClick(subject.value, momentIndex)} // Passando os parâmetros corretos
+                          onClick={() => handleLoadClassroomClick(subject.value, momentIndex)} // Passando os parâmetros corretos
                         >
                         Carregar Sala
-                        </button>
-                      </td>
-
-                      {/* Botão para exibir a Data e Hora */}
-                      <td>
-                      <button 
-                        onClick={() => {
-                          alert(`Data: ${formatDate(localDate[`${subject.value}-${momentIndex}`])}`);
-                          alert(`Hora: ${formatTime(localTime[`${subject.value}-${momentIndex}`])}`);
-                        }}>                          
-                        Ver Data e Hora
                         </button>
                       </td>
                       <td><button type="button" onClick={() => handleAddEvaluationSubmit(subject, momentIndex)}>✔</button></td>
