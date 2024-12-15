@@ -367,7 +367,7 @@ function Admin() {
       const evaluations = await response.json();
       
       const evaluation = evaluations.find((evaluation: any) => evaluation.evaluationPosition === momentIndex);
-      
+
       if (!evaluation) {
         alert('Avaliação não encontrada para o momento especificado.');
         return;
@@ -402,6 +402,42 @@ function Admin() {
   
     } catch (error) {
       alert('Erro: ' + error);
+    }
+  } 
+  
+  async function handleDeleteEvaluationSubmit(subject: { value: number }, momentIndex: number) {
+    try {
+      // Realiza a requisição para pegar as avaliações
+      const response = await fetch('http://localhost:8080/app/evaluations?subjectId=' + subject.value);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao procurar avaliações para a unidade curricular.');
+      }
+  
+      const evaluations = await response.json();
+  
+      const evaluation = evaluations.find((evaluation: any) => evaluation.evaluationPosition === momentIndex);
+  
+      if (!evaluation) {
+        alert('Avaliação não encontrada para o momento especificado.');
+        return;
+      }
+  
+      const deleteResponse = await fetch('http://localhost:8080/app/evaluations/' + evaluation.evaluationId, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (deleteResponse.ok) {
+        alert('Avaliação eliminada com sucesso! Pode preencher novamente.');
+      } else {
+        alert('Erro ao eliminar avaliação. Verifique se a avaliação existe.');
+      }
+  
+    } catch (error) {
+      alert('Erro na comunicação com o servidor: ' + error);
     }
   }  
 
@@ -728,11 +764,6 @@ function Admin() {
                       <button type="button" onClick={() => handleAddEvaluationSubmit(subject, momentIndex)}>✔</button>
                       </td>
 
-
-                      {/*<td>
-                      <button type="button" onClick={() => handleDeleteEvaluationSubmit(subject, momentIndex)}>❌</button>
-                      </td>*/}
-
                       {/* Botão para carregar a sala */}
                       <td>
                         <button
@@ -742,6 +773,12 @@ function Admin() {
                         Carregar Sala
                         </button>
                       </td>
+
+                      {/* Botão para apagar a avaliação */}
+                      <td>
+                      <button type="button" onClick={() => handleDeleteEvaluationSubmit(subject, momentIndex)}>❌</button>
+                      </td>
+
                     </tr>
                     ))}
                   </>
