@@ -134,7 +134,7 @@ function Admin() {
     for (const subject of selectedSubjects) {
       try {
         const response = await fetch(
-          'http://localhost:8080/app/subjects/delete/' + subject.value,
+          'http://localhost:8080/app/subjects/' + subject.value,
           {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
@@ -155,8 +155,6 @@ function Admin() {
         alert('Erro na comunicação com o servidor.');
       }
     }
-  
-    alert('Todas as unidades curriculares foram removidas com sucesso!');
   }
 
   const [subjectName, setSubjectName] = useState("");
@@ -192,11 +190,16 @@ function Admin() {
 
 
       if (response.ok) {
-        alert('Curso editado com sucesso!');
+        const addedSubject = await response.json(); // A resposta pode retornar o novo subject
+
+        setSubjects((prevSubjects) => [...prevSubjects, addedSubject]); 
+
         setSubjectName('');
         setSubjectSemester('');
         setSubjectYear('');
         setSubjectStudentsEnrolled('');
+
+        alert('Curso editado com sucesso!');
       } else {
         alert('Erro ao editar o curso!');
       }
@@ -706,16 +709,20 @@ function Admin() {
                         {evaluationClassrooms[`${subject.value}-${momentIndex}`] || "Sala não definida"}
                       </td>
 
+                      {/* Botão para adicionar a avaliação */}
+                      <td>
+                      <button type="button" onClick={() => handleAddEvaluationSubmit(subject, momentIndex)}>✔</button>
+                      </td>
+
                       {/* Botão para carregar a sala */}
                       <td>
                         <button
                           type="button"
-                          onClick={() => handleLoadClassroomClick(subject.value, momentIndex)} // Passando os parâmetros corretos
+                          onClick={() => handleLoadClassroomClick(subject.value, momentIndex)}
                         >
                         Carregar Sala
                         </button>
                       </td>
-                      <td><button type="button" onClick={() => handleAddEvaluationSubmit(subject, momentIndex)}>✔</button></td>
                     </tr>
                     ))}
                   </>
