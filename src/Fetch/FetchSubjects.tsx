@@ -17,7 +17,7 @@ interface FetchProps {
 
 const Fetch: React.FC<FetchProps> = ({ onFetchComplete }) => {
   useEffect(() => {
-    fetch("http://localhost:8080/app/subjects")
+    fetch('http://localhost:8080/app/subjects')
       .then((res) => res.json())
       .then((data) => {
         const formattedSubjects = (Array.isArray(data) ? data : [data]).map(
@@ -31,7 +31,7 @@ const Fetch: React.FC<FetchProps> = ({ onFetchComplete }) => {
         );
         onFetchComplete(formattedSubjects);
       })
-      .catch((error) => console.error("Error:", error));
+      .catch((error) => console.error('Error: ', error));
   }, [onFetchComplete]);
 
   return null;

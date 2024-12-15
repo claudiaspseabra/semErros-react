@@ -1,4 +1,4 @@
-import './styles/Admin.css'
+import './styles/AdminUser.css'
 import './styles/Table.css'
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -20,7 +20,6 @@ function Admin() {
   // Fetchs
   const [courses, setCourses] = useState<{ value: number; label: string }[]>([]);
   const [subjects, setSubjects] = useState<{ value: number; course: number; year: number; semester: number; label: string }[]>([]);
-
 
   // Obter id do curso
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -57,9 +56,10 @@ function Admin() {
   const [name, setName] = useState("");
   const [username, setUserName] = useState("");
   const [password, setPassword] = useState("");
+  const [courseAtt, setCourseAtt] = useState("");
 
   function validateUser() {
-    return name.length > 0 && username.length > 0 && password.length > 0;
+    return name.length > 0 && username.length > 0 && password.length > 0 && courseAtt.length > 0;
   }
 
   async function handleUserSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
@@ -68,7 +68,8 @@ function Admin() {
     const userData = {
       name,
       username,
-      password
+      password,
+      courseAtt
     };
     
     try {
@@ -85,11 +86,12 @@ function Admin() {
         setName('');
         setUserName('');
         setPassword('');
+        setCourseAtt('');
       } else {
-        alert('Erro ao criar coordenador!');
+        alert('Erro ao criar coordenador.');
       }
     } catch (error) {
-      alert('Erro na comunicação com o servidor.');
+      alert('Erro na comunicação com o servidor: ' + error);
     }
   }
 
@@ -116,10 +118,10 @@ function Admin() {
   
         alert('Unidade Curricular removida com sucesso!');
       } else {
-        alert('Erro ao remover Unidade Curricular.');
+        alert('Erro ao remover unidade curricular: ' + subjectToRemove.label + '.');
       }
     } catch (error) {
-      alert('Erro na comunicação com o servidor!');
+      alert('Erro na comunicação com o servidor.' + error);
     }
   }
 
@@ -148,8 +150,9 @@ function Admin() {
           setSubjects((prevSubjects) =>
             prevSubjects.filter((s) => s.value !== subject.value)
           );
+          alert('Unidades curriculares removidas com sucesso.')
         } else {
-          alert('Erro ao remover Unidade Curricular: ' + subject.label);
+          alert('Erro ao remover unidade curricular: ' + subject.label + '.');
         }
       } catch (error) {
         alert('Erro na comunicação com o servidor.');
@@ -190,7 +193,7 @@ function Admin() {
 
 
       if (response.ok) {
-        const addedSubject = await response.json(); // A resposta pode retornar o novo subject
+        const addedSubject = await response.json();
 
         setSubjects((prevSubjects) => [...prevSubjects, addedSubject]); 
 
@@ -201,7 +204,7 @@ function Admin() {
 
         alert('Curso editado com sucesso!');
       } else {
-        alert('Erro ao editar o curso!');
+        alert('Erro ao editar o curso.');
       }
     } catch (error) {
       alert(error);
@@ -234,7 +237,7 @@ function Admin() {
   }
 
   const [subjectAttendance, setSubjectAttendance] = useState<{ [key: number]: string }>({});
-  const [subjectEvaluationType, setSubjectEvaluationType] = useState<{ [key: number]: string }>({});
+  const [subjectEvaluationType, setSubjectEvaluationType] = useState<{ [key: number]: string }>({}); 
 
   // Update attendance e evaluation type de subjects
   async function handleUpdateAllSubjects(event: React.SyntheticEvent<HTMLFormElement>) {
@@ -256,7 +259,6 @@ function Admin() {
           },
           body: JSON.stringify(updatedSubject),
         });
-  
         if (!response.ok) {
           alert('Erro ao atualizar a disciplina ' + subject.label);
         }
@@ -329,6 +331,7 @@ function Admin() {
       "evaluationWeight": evaluationWeight[`${subject.value}-${momentIndex}`] || 0,
       "evaluationDate": evaluationDate,
       "evaluationHour": evaluationTime,
+      "evaluationPosition": momentIndex,
       "subjectId": subject.value,
     };
     
@@ -355,31 +358,31 @@ function Admin() {
   // Load sala da evaluation
   const handleLoadClassroomClick = async (subjectId: number, momentIndex: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/app/evaluations?subjectId=${subjectId}`);
-  
+      const response = await fetch('http://localhost:8080/app/evaluations?subjectId=' + subjectId);
+      
       if (!response.ok) {
-        throw new Error('Erro ao buscar avaliações para o subjectId');
+        throw new Error('Erro na pesquisa das avaliações da unidade curricular.');
       }
   
       const evaluations = await response.json();
-  
-      const evaluation = evaluations[momentIndex];
-  
+      
+      const evaluation = evaluations.find((evaluation: any) => evaluation.evaluationPosition === momentIndex);
+      
       if (!evaluation) {
-        alert('Avaliação não encontrada para o momento especificado');
+        alert('Avaliação não encontrada para o momento especificado.');
         return;
       }
   
       const classroomId = evaluation.classroomId;
-  
+      
       if (!classroomId) {
-        alert('Classroom ID não encontrado para esta avaliação.');
+        alert('Sala não encontrada para esta avaliação.');
         return;
       }
   
       const classroomsResponse = await fetch('http://localhost:8080/app/classrooms');
       if (!classroomsResponse.ok) {
-        throw new Error('Erro ao buscar classrooms');
+        throw new Error('Erro ao pesquisar salas.');
       }
   
       const classrooms = await classroomsResponse.json();
@@ -388,25 +391,23 @@ function Admin() {
       
       if (classroom) {
         const classroomTag = classroom.tag;
-        
+  
         setEvaluationClassrooms((prev) => ({
           ...prev,
           [`${subjectId}-${momentIndex}`]: classroomTag,
         }));
       } else {
-        alert('Classroom não encontrado.');
+        alert('Sala não encontrada.');
       }
   
     } catch (error) {
-      alert(`Erro: ${error}`);
+      alert('Erro: ' + error);
     }
   }  
 
   //Logoff
   const navigate = useNavigate();
   const handleLogoff = () => {
-    localStorage.removeItem('user');
-
     navigate('/');
   };
   
@@ -435,7 +436,7 @@ function Admin() {
       {isAddUserShown && (
         <div className='addUser'>
         <Form onSubmit={handleUserSubmit}>
-            <Form.Group controlId="name">
+            <Form.Group controlId='name'>
               <Form.Label>Nome</Form.Label>
                 <Form.Control
                     autoFocus
@@ -444,7 +445,7 @@ function Admin() {
                     onChange={(e) => setName(e.target.value)}
                 />
             </Form.Group>
-              <Form.Group controlId="number">
+              <Form.Group controlId='number'>
                 <Form.Label>Username</Form.Label>
                   <Form.Control
                       autoFocus
@@ -453,14 +454,27 @@ function Admin() {
                       onChange={(e) => setUserName(e.target.value)}
                   />
               </Form.Group>
-            <Form.Group controlId="password">
+            <Form.Group controlId='password'>
               <Form.Label>Password</Form.Label>
                   <Form.Control
                       autoFocus
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                />
+                  />
+            </Form.Group>
+            <Form.Group controlId="courseAtt">
+              <Form.Label>Curso</Form.Label>
+                  <Select
+                    name="courses"
+                    options={courses}
+                    closeMenuOnSelect={true}
+                    hideSelectedOptions={false}
+                    value={courses.find(course => course.label === courseAtt)}
+                    onChange={(selectedOption) =>
+                      setCourseAtt(selectedOption?.label || '')
+                    }
+                  />
             </Form.Group>
             <Button type="submit" disabled={!validateUser()}>Adicionar</Button>
           </Form>
@@ -469,9 +483,9 @@ function Admin() {
       
       {/* Edit course */}
       {isEditCShown && (
-        <div className="editCourse">
+        <div className='editCourse'>
           <Form onSubmit={handleAddSubjectSubmit}>
-            <Form.Group controlId="courses">
+            <Form.Group controlId='courses'>
               <Select
                 name="courses"
                 options={courses}
@@ -483,7 +497,7 @@ function Admin() {
               />
             </Form.Group>
 
-            <Form.Group controlId="subjects">
+            <Form.Group controlId='subjects'>
               <Select
                 isMulti
                 name="subjects"
@@ -588,14 +602,14 @@ function Admin() {
           {/*Escolher semestre para a tabela*/}
           <div className="toggle-container">
           <button
-              className={`toggle-button ${selectedSemester === '1º Semestre' ? 'active' : ''}`}
+              className={'toggle-button ' + (selectedSemester === '1º Semestre' ? 'active' : '')}
               onClick={() =>
                 toggleSemester('1º Semestre')
               }
             > 1º Semestre</button>
 
           <button
-              className={`toggle-button ${selectedSemester === '2º Semestre' ? 'active' : ''}`}
+              className={'toggle-button ' + (selectedSemester === '2º Semestre' ? 'active' : '')}
               onClick={() =>
                 toggleSemester('2º Semestre')
               }
@@ -606,7 +620,7 @@ function Admin() {
           <h2>Época normal</h2>
           <h3>{selectedSemester} 2024/2025</h3>
 
-          <table className="table">
+          <table className='table'>
             
             <thead>
               <tr>
@@ -666,9 +680,9 @@ function Admin() {
 
                   {/* Mapeamento dos momentos de avaliação */}
                   {evaluationMoments.map((_, momentIndex) => (
-                    <tr key={`moment-${subject.value}-${momentIndex}`}>
+                    <tr key={'moment-' + subject.value + '-' + momentIndex}>
                       {/* Coluna de Elementos */}
-                      <td key={`element-${subject.value}-${momentIndex}`}>
+                      <td key={'element-' + subject.value + '-' + momentIndex}>
                         <Select
                           name="elements"
                           options={elements}
@@ -679,7 +693,7 @@ function Admin() {
                       </td>
 
                       {/* Coluna de Ponderação */}
-                      <td key={`ponderacao-${subject.value}-${momentIndex}`}>
+                      <td key={'weight-' + subject.value + '-' + momentIndex}>
                       <input
                         type="number"
                         value={evaluationWeight[`${subject.value}-${momentIndex}`] || ""}
@@ -692,7 +706,7 @@ function Admin() {
                       />
                       </td>
 
-                      <td key={`date-time-${subject.value}-${momentIndex}`}>
+                      <td key={'dateAndTime-' + subject.value + '-' + momentIndex}>
                         <DatePicker
                           selected={localDateTime[`${subject.value}-${momentIndex}`] || null}
                           dateFormat="d/MM/yyyy HH:mm:ss"
@@ -705,7 +719,7 @@ function Admin() {
 
 
                       {/* Coluna de Sala de Aula */}
-                      <td key={`room-${subject.value}-${momentIndex}`}>
+                      <td key={'classroom-' + subject.value + '-' + momentIndex}>
                         {evaluationClassrooms[`${subject.value}-${momentIndex}`] || "Sala não definida"}
                       </td>
 
@@ -713,6 +727,11 @@ function Admin() {
                       <td>
                       <button type="button" onClick={() => handleAddEvaluationSubmit(subject, momentIndex)}>✔</button>
                       </td>
+
+
+                      {/*<td>
+                      <button type="button" onClick={() => handleDeleteEvaluationSubmit(subject, momentIndex)}>❌</button>
+                      </td>*/}
 
                       {/* Botão para carregar a sala */}
                       <td>

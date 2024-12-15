@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 interface Classroom {
   classroomId: number;
@@ -16,7 +16,7 @@ interface FetchProps {
 
 const Fetch: React.FC<FetchProps> = ({ onFetchComplete }) => {
   useEffect(() => {
-    fetch("http://localhost:8080/app/classrooms")
+    fetch('http://localhost:8080/app/classrooms')
       .then((res) => res.json())
       .then((data) => {
         const formattedClassrooms = (Array.isArray(data) ? data : [data]).map(
@@ -27,7 +27,7 @@ const Fetch: React.FC<FetchProps> = ({ onFetchComplete }) => {
         );
         onFetchComplete(formattedClassrooms);
       })
-      .catch((error) => console.error("Error:", error));
+      .catch((error) => console.error('Error: ', error));
   }, [onFetchComplete]);
 
   return null;

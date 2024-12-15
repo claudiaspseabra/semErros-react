@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // For navigation after login
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // For navigation after login
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
 
-import "./styles/Login.css";
+import './styles/Login.css';
 
 function Login() {
     const [username, setUsername] = useState("");
@@ -19,7 +19,7 @@ function Login() {
         event.preventDefault();
         try {
             // Send the username and password to get the user details from the server
-            const response = await fetch("http://localhost:8080/app/users", {
+            const response = await fetch('http://localhost:8080/app/users', {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -37,26 +37,26 @@ function Login() {
                 if (user) {
                     // Check if the user is an admin and navigate accordingly
                     if (user.admin) {
-                        navigate("/admin");
+                        navigate('/admin/' + user.userId);
                     } else {
-                        navigate("/user");
+                        navigate("/user/" + user.userId);
                     }
                 } else {
-                    setError("Username ou password inválido.");
+                    setError('Username ou password inválido.');
                 }
             } else {
-                setError("Something went wrong. Please try again later.");
+                setError('Ocorreu um erro. Tente novamente mais tarde.');
             }
         } catch (err) {
             console.error("Login error:", err);
-            setError("Something went wrong. Please try again later.");
+            setError('Ocorreu um erro. Tente novamente mais tarde.');
         }
     }
 
     return (
-        <div className="Login">
+        <div className='Login'>
             <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="username">
+                <Form.Group controlId='username'>
                     <Form.Label>Username</Form.Label>
                     <Form.Control
                         autoFocus
@@ -65,7 +65,7 @@ function Login() {
                         onChange={(e) => setUsername(e.target.value)}
                     />
                 </Form.Group>
-                <Form.Group controlId="password">
+                <Form.Group controlId='password'>
                     <Form.Label>Password</Form.Label>
                     <Form.Control
                         type="password"
@@ -73,7 +73,7 @@ function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </Form.Group>
-                {error && <div className="error">{error}</div>}
+                {error && <div className='error'>{error}</div>}
                 <Button type="submit" disabled={!validateForm()}>
                     Login
                 </Button>
