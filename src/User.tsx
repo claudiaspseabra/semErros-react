@@ -63,7 +63,6 @@ function User() {
                 if (course) {
                 setSelectedCourse(course.courseId);
                 }
-                alert(selectedCourse);
             } else {
                 alert('Erro ao obter cursos');
             }
