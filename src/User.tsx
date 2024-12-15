@@ -123,7 +123,7 @@ function User() {
             prevSubjects.filter((subject) => subject.value !== subjectToRemove.value)
             );
     
-            alert('Unidade Curricular removida com sucesso!');
+            alert('Unidade curricular removida com sucesso!');
         } else {
             alert('Erro ao remover unidade curricular: ' + subjectToRemove.label + '.');
         }
